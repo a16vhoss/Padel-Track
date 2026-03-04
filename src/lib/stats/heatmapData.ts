@@ -7,6 +7,7 @@ export function getHeatmapData(match: Match): Record<number, number> {
 
   for (const point of allPoints) {
     for (const shot of point.shots) {
+      if (!shot.destination) continue;
       if (shot.destination.type === 'single') {
         counts[shot.destination.zone] = (counts[shot.destination.zone] || 0) + 1;
       } else {

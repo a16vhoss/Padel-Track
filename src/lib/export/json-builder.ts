@@ -8,13 +8,13 @@ function exportShot(shot: Shot, match: Match): ExportShot {
     .find((p) => p.id === shot.player);
 
   const dest = shot.destination;
-  const isIntermediate = dest.type === 'intermediate';
+  const isIntermediate = dest?.type === 'intermediate';
 
-  const zoneStr = dest.type === 'intermediate'
+  const zoneStr = !dest ? '' : dest.type === 'intermediate'
     ? `${dest.primary},${dest.secondary}`
     : String(dest.zone);
 
-  const primaryZone = dest.type === 'single'
+  const primaryZone = !dest ? 0 : dest.type === 'single'
     ? dest.zone
     : dest.primary;
 
@@ -33,10 +33,10 @@ function exportShot(shot: Shot, match: Match): ExportShot {
     resultado_individual: statusName(shot.status),
   };
 
-  if (dest.type === 'intermediate') {
+  if (dest?.type === 'intermediate') {
     result.zona_destino_suelo_secundaria = dest.secondary;
     result.precision_ubicacion = 'linea_divisoria';
-  } else {
+  } else if (dest) {
     result.precision_ubicacion = 'zona_unica';
   }
 
@@ -78,7 +78,7 @@ export function buildExportJSON(match: Match): ExportMatch {
   let errorsT1 = 0, errorsT2 = 0;
 
   for (const shot of allShots) {
-    if (shot.destination.type === 'intermediate') intermediateHits++;
+    if (shot.destination?.type === 'intermediate') intermediateHits++;
     const isT1 = shot.player === 'J1' || shot.player === 'J2';
     if (shot.status === 'W') { isT1 ? winnersT1++ : winnersT2++; }
     if (shot.status === 'X' || shot.status === 'DF') { isT1 ? errorsT1++ : errorsT2++; }

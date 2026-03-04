@@ -26,6 +26,7 @@ export function StatusSelector({ selected, onSelect }: StatusSelectorProps) {
             <button
               key={s.label}
               onClick={() => onSelect(s.value)}
+              title={s.description}
               className={`
                 flex flex-col items-center gap-0.5 p-2 rounded-md text-xs border transition-all
                 ${isSelected

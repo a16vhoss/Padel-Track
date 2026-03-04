@@ -39,7 +39,7 @@ export interface Shot {
   player: PlayerId;
   type: ShotType;
   modifiers: ShotModifiers;
-  destination: ZoneDestination;
+  destination: ZoneDestination | null;
   status: ShotStatus;
   notation: string; // Generated compact notation
   timestamp: number;

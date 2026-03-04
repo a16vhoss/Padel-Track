@@ -10,7 +10,7 @@ interface ShotInput {
   player: PlayerId;
   type: ShotType;
   modifiers: ShotModifiers;
-  destination: ZoneDestination;
+  destination: ZoneDestination | null;
   status: ShotStatus;
 }
 
@@ -18,6 +18,7 @@ interface PointState {
   shots: Shot[];
   addShot: (input: ShotInput) => void;
   removeLast: () => void;
+  removeAt: (index: number) => void;
   clearShots: () => void;
 }
 
@@ -49,6 +50,12 @@ export const usePointStore = create<PointState>((set, get) => ({
   removeLast: () => {
     set((state) => ({
       shots: state.shots.slice(0, -1),
+    }));
+  },
+
+  removeAt: (index: number) => {
+    set((state) => ({
+      shots: state.shots.filter((_, i) => i !== index),
     }));
   },
 

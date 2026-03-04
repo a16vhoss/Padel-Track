@@ -18,6 +18,7 @@ export default function RegistroPage() {
   const setDestination = useRecordingStore((s) => s.setDestination);
   const wallBounces = useRecordingStore((s) => s.wallBounces);
   const toggleWallBounce = useRecordingStore((s) => s.toggleWallBounce);
+  const quickMode = useRecordingStore((s) => s.quickMode);
 
   if (!match || !scoring) {
     return <div className="text-center py-12 text-muted">Cargando...</div>;
@@ -32,13 +33,26 @@ export default function RegistroPage() {
     <div className="space-y-4">
       <GuiaRegistro />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Left: Court + Wall panel */}
+      {/* Left: Court with integrated walls */}
       <div className="space-y-4">
         <CourtSVG
           selectedDestination={destination}
           onSelectZone={setDestination}
+          wallBounces={wallBounces}
+          onWallToggle={toggleWallBounce}
+          showWalls={!quickMode}
         />
-        <WallPanel selected={wallBounces} onToggle={toggleWallBounce} />
+        {/* Fallback WallPanel for quick mode or small screens */}
+        {quickMode && (
+          <details className="text-xs">
+            <summary className="text-muted cursor-pointer hover:text-foreground">
+              Zonas de pared (opcional)
+            </summary>
+            <div className="mt-2">
+              <WallPanel selected={wallBounces} onToggle={toggleWallBounce} />
+            </div>
+          </details>
+        )}
       </div>
 
       {/* Right: Recording panel + scoreboard */}

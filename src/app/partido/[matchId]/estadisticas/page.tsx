@@ -37,6 +37,8 @@ export default function EstadisticasPage() {
         stats={stats}
         team1Name={match.teams[0].name}
         team2Name={match.teams[1].name}
+        match={match}
+        shotEffectiveness={advancedStats?.shotEffectiveness}
       />
 
       <AnalysisCourt match={match} />

@@ -19,6 +19,7 @@ interface AnalysisFiltersProps {
 type FilterOption = {
   label: string;
   filter: AnalysisFilter;
+  teamIndex?: number;
 };
 
 export function AnalysisFilters({
@@ -51,15 +52,17 @@ export function AnalysisFilters({
 
   const options: FilterOption[] = [
     { label: 'Todos', filter: { type: 'all' } },
-    { label: match.teams[0].name, filter: { type: 'team', team: 'team1' } },
-    { label: match.teams[1].name, filter: { type: 'team', team: 'team2' } },
+    { label: match.teams[0].name, filter: { type: 'team', team: 'team1' }, teamIndex: 0 },
+    { label: match.teams[1].name, filter: { type: 'team', team: 'team2' }, teamIndex: 1 },
     ...match.teams[0].players.map((p) => ({
       label: p.shortName,
       filter: { type: 'player' as const, player: p.id },
+      teamIndex: 0,
     })),
     ...match.teams[1].players.map((p) => ({
       label: p.shortName,
       filter: { type: 'player' as const, player: p.id },
+      teamIndex: 1,
     })),
   ];
 
@@ -67,21 +70,40 @@ export function AnalysisFilters({
 
   return (
     <div className="flex gap-1.5 flex-wrap">
-      {options.map((opt) => (
-        <button
-          key={opt.label}
-          onClick={() => onFilterChange(opt.filter)}
-          className={`
-            px-3 py-1 rounded-full text-xs font-medium transition-colors
-            ${isActive(opt)
-              ? 'bg-primary text-black'
-              : 'bg-card border border-border text-muted hover:text-foreground'
-            }
-          `}
-        >
-          {opt.label}
-        </button>
-      ))}
+      {options.map((opt) => {
+        const active = isActive(opt);
+        const teamBorder = opt.teamIndex === 0
+          ? 'border-team1/50'
+          : opt.teamIndex === 1
+            ? 'border-secondary/50'
+            : 'border-border';
+        const teamBg = opt.teamIndex === 0
+          ? 'bg-team1/10'
+          : opt.teamIndex === 1
+            ? 'bg-secondary/10'
+            : 'bg-card';
+
+        return (
+          <button
+            key={opt.label}
+            onClick={() => onFilterChange(opt.filter)}
+            className={`
+              px-3 py-1 rounded-full text-xs font-medium transition-colors border
+              ${active
+                ? 'bg-primary text-black border-primary'
+                : `${teamBg} ${teamBorder} text-muted hover:text-foreground`
+              }
+            `}
+          >
+            {opt.teamIndex !== undefined && !active && (
+              <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${
+                opt.teamIndex === 0 ? 'bg-team1' : 'bg-secondary'
+              }`} />
+            )}
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

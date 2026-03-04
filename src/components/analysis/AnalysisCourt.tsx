@@ -60,8 +60,7 @@ export function AnalysisCourt({ match }: AnalysisCourtProps) {
     <div className="space-y-3">
       <h3 className="text-sm font-medium">Analisis de Cancha</h3>
 
-      <AnalysisTabBar activeTab={activeTab} onTabChange={setActiveTab} />
-
+      {/* Filters ABOVE tabs */}
       <AnalysisFilters
         match={match}
         filter={filter}
@@ -71,6 +70,8 @@ export function AnalysisCourt({ match }: AnalysisCourtProps) {
         selectedPointIdx={replayPointIdx}
         onSelectPoint={handleReplayPointChange}
       />
+
+      <AnalysisTabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
       <CourtSVG
         selectedDestination={null}

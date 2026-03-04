@@ -45,7 +45,7 @@ function encodeSpin(spin: ShotSpin): string {
   return spin;
 }
 
-function encodeDestination(destination: ZoneDestination): string {
+function encodeDestination(destination: ZoneDestination | null): string {
   if (!destination) return '';
   if (destination.type === 'single') {
     return '->' + destination.zone;

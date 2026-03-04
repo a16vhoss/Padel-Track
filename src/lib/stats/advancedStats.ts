@@ -27,7 +27,7 @@ function isTeam1Player(p: PlayerId): boolean {
 function getZoneId(shot: Shot): FloorZoneId | null {
   if (!shot.destination) return null;
   if (shot.destination.type === 'single') return shot.destination.zone;
-  return shot.destination.primary; // use primary for intermediate
+  return shot.destination.primary;
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +73,7 @@ export function computeHeatmap(match: Match, filter: AnalysisFilter): HeatmapDat
     if (!shot.destination) continue;
     if (shot.destination.type === 'single') {
       counts[shot.destination.zone] = (counts[shot.destination.zone] || 0) + 1;
-    } else {
+    } else if (shot.destination.type === 'intermediate') {
       counts[shot.destination.primary] = (counts[shot.destination.primary] || 0) + 0.5;
       counts[shot.destination.secondary] = (counts[shot.destination.secondary] || 0) + 0.5;
     }

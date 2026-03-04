@@ -13,6 +13,7 @@ interface RecordingState {
   wallBounces: WallZoneId[];
   destination: ZoneDestination | null;
   status: ShotStatus;
+  quickMode: boolean;
 
   setPlayer: (p: PlayerId) => void;
   setShotType: (t: ShotType) => void;
@@ -22,7 +23,17 @@ interface RecordingState {
   toggleWallBounce: (w: WallZoneId) => void;
   setDestination: (d: ZoneDestination | null) => void;
   setStatus: (s: ShotStatus) => void;
+  setQuickMode: (q: boolean) => void;
   reset: () => void;
+}
+
+function getInitialQuickMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem('padel-quick-mode') === 'true';
+  } catch {
+    return false;
+  }
 }
 
 const initialState = {
@@ -38,6 +49,7 @@ const initialState = {
 
 export const useRecordingStore = create<RecordingState>((set) => ({
   ...initialState,
+  quickMode: getInitialQuickMode(),
 
   setPlayer: (player) => set({ player }),
   setShotType: (shotType) => set({ shotType }),
@@ -52,5 +64,11 @@ export const useRecordingStore = create<RecordingState>((set) => ({
     })),
   setDestination: (destination) => set({ destination }),
   setStatus: (status) => set({ status }),
+  setQuickMode: (quickMode) => {
+    try {
+      localStorage.setItem('padel-quick-mode', String(quickMode));
+    } catch {}
+    set({ quickMode });
+  },
   reset: () => set(initialState),
 }));

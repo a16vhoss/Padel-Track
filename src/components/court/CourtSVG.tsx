@@ -1,6 +1,6 @@
 'use client';
 
-import { FloorZoneId, ZoneDestination } from '@/types/zones';
+import { FloorZoneId, ZoneDestination, WallZoneId } from '@/types/zones';
 import { FLOOR_ZONES, INTERMEDIATE_ZONE_LINES } from '@/lib/zones/zone-metadata';
 import { FloorZone } from './FloorZone';
 import { IntermediateZone } from './IntermediateZone';
@@ -12,7 +12,54 @@ interface CourtSVGProps {
   showLabels?: boolean;
   interactive?: boolean;
   children?: React.ReactNode;
+  // Wall integration
+  wallBounces?: WallZoneId[];
+  onWallToggle?: (w: WallZoneId) => void;
+  showWalls?: boolean;
 }
+
+// Wall zone definitions for SVG rendering
+const WALL_SVG_ZONES: Array<{
+  id: WallZoneId;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  wall: 'fondo' | 'lateral_izq' | 'lateral_der';
+  level: 'baja' | 'alta';
+}> = [
+  // Fondo baja (bottom wall, lower row) - 4 panels
+  { id: 'P1', label: 'P1', x: 0, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
+  { id: 'P2', label: 'P2', x: 100, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
+  { id: 'P3', label: 'P3', x: 200, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
+  { id: 'P4', label: 'P4', x: 300, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
+  // Fondo alta (bottom wall, upper row) - 4 panels
+  { id: 'P5', label: 'P5', x: 0, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
+  { id: 'P6', label: 'P6', x: 100, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
+  { id: 'P7', label: 'P7', x: 200, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
+  { id: 'P8', label: 'P8', x: 300, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
+  // Lateral izq baja (left wall) - 4 panels top to bottom
+  { id: 'P12', label: 'P12', x: -20, y: 0, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
+  { id: 'P11', label: 'P11', x: -20, y: 125, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
+  { id: 'P10', label: 'P10', x: -20, y: 250, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
+  { id: 'P9', label: 'P9', x: -20, y: 375, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
+  // Lateral izq alta
+  { id: 'P16', label: 'P16', x: -36, y: 0, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
+  { id: 'P15', label: 'P15', x: -36, y: 125, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
+  { id: 'P14', label: 'P14', x: -36, y: 250, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
+  { id: 'P13', label: 'P13', x: -36, y: 375, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
+  // Lateral der baja (right wall) - 4 panels top to bottom
+  { id: 'P20', label: 'P20', x: 400, y: 0, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
+  { id: 'P19', label: 'P19', x: 400, y: 125, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
+  { id: 'P18', label: 'P18', x: 400, y: 250, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
+  { id: 'P17', label: 'P17', x: 400, y: 375, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
+  // Lateral der alta
+  { id: 'P24', label: 'P24', x: 420, y: 0, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
+  { id: 'P23', label: 'P23', x: 420, y: 125, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
+  { id: 'P22', label: 'P22', x: 420, y: 250, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
+  { id: 'P21', label: 'P21', x: 420, y: 375, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
+];
 
 export function CourtSVG({
   selectedDestination,
@@ -21,6 +68,9 @@ export function CourtSVG({
   showLabels = true,
   interactive = true,
   children,
+  wallBounces,
+  onWallToggle,
+  showWalls = false,
 }: CourtSVGProps) {
   const isZoneSelected = (id: FloorZoneId) => {
     if (!selectedDestination) return false;
@@ -36,10 +86,14 @@ export function CourtSVG({
     );
   };
 
+  const hasWalls = showWalls && wallBounces && onWallToggle;
+  // Expand viewBox when walls are shown
+  const viewBox = hasWalls ? '-40 0 480 540' : '0 0 400 500';
+
   return (
     <div className="relative w-full max-w-md mx-auto">
       <svg
-        viewBox="0 0 400 500"
+        viewBox={viewBox}
         className="w-full h-auto rounded-lg overflow-hidden"
         style={{ background: '#0f2e1a' }}
       >
@@ -47,14 +101,11 @@ export function CourtSVG({
         <rect x="0" y="0" width="400" height="500" fill="#163824" rx="8" />
 
         {/* Row background tints */}
-        {/* RED row (attack) - top: y=0 to y=140 */}
         <rect x="0" y="0" width="400" height="140" fill="rgba(220, 38, 38, 0.06)" />
-        {/* MEDIA row (transition) - middle: y=140 to y=315 */}
         <rect x="0" y="140" width="400" height="175" fill="rgba(5, 150, 105, 0.04)" />
-        {/* FONDO row (defense) - bottom: y=315 to y=500 */}
         <rect x="0" y="315" width="400" height="185" fill="rgba(37, 99, 235, 0.06)" />
 
-        {/* Net line - prominent */}
+        {/* Net line */}
         <line x1="0" y1="140" x2="400" y2="140" stroke="white" strokeWidth="3" opacity="0.5" />
         <text x="200" y="136" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontWeight="bold" letterSpacing="2">
           RED
@@ -83,7 +134,7 @@ export function CourtSVG({
           />
         ))}
 
-        {/* Intermediate zone lines (clickeable areas between zones) */}
+        {/* Intermediate zone lines */}
         {INTERMEDIATE_ZONE_LINES.map((iz) => (
           <IntermediateZone
             key={iz.label}
@@ -99,7 +150,63 @@ export function CourtSVG({
           />
         ))}
 
-        {/* Row labels - large background text */}
+        {/* Wall zones integrated into SVG */}
+        {hasWalls && (
+          <>
+            {/* Wall labels */}
+            <text x="200" y="514" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1">
+              FONDO
+            </text>
+            <text x="-28" y="250" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform="rotate(-90, -28, 250)">
+              LAT. IZQ
+            </text>
+            <text x="428" y="250" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform="rotate(90, 428, 250)">
+              LAT. DER
+            </text>
+
+            {WALL_SVG_ZONES.map((wz) => {
+              const isSelected = wallBounces!.includes(wz.id);
+              const fillColor = isSelected
+                ? 'rgba(245, 158, 11, 0.4)'
+                : wz.level === 'baja'
+                  ? 'rgba(139, 92, 246, 0.1)'
+                  : 'rgba(139, 92, 246, 0.05)';
+              const strokeColor = isSelected
+                ? 'rgba(245, 158, 11, 0.8)'
+                : 'rgba(139, 92, 246, 0.3)';
+
+              return (
+                <g key={wz.id}>
+                  <rect
+                    x={wz.x}
+                    y={wz.y}
+                    width={wz.width}
+                    height={wz.height}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth="1"
+                    rx="2"
+                    className="cursor-pointer"
+                    onClick={() => onWallToggle!(wz.id)}
+                  />
+                  <text
+                    x={wz.x + wz.width / 2}
+                    y={wz.y + wz.height / 2 + 3}
+                    textAnchor="middle"
+                    fill={isSelected ? 'rgba(245, 158, 11, 0.9)' : 'rgba(255,255,255,0.25)'}
+                    fontSize="7"
+                    fontWeight={isSelected ? 'bold' : 'normal'}
+                    pointerEvents="none"
+                  >
+                    {wz.id}
+                  </text>
+                </g>
+              );
+            })}
+          </>
+        )}
+
+        {/* Row labels */}
         {showLabels && (
           <>
             <text x="200" y="78" textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="36" fontWeight="900" pointerEvents="none" letterSpacing="6">
@@ -150,6 +257,12 @@ export function CourtSVG({
             <span className="w-2 h-2 rounded-sm bg-blue-600/60" />
             Defensa
           </span>
+          {hasWalls && (
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-sm bg-purple-600/60" />
+              Pared
+            </span>
+          )}
         </div>
       )}
     </div>
