@@ -10,6 +10,8 @@ interface CourtSVGProps {
   onSelectZone: (dest: ZoneDestination) => void;
   heatmapData?: Record<number, number>;
   showLabels?: boolean;
+  interactive?: boolean;
+  children?: React.ReactNode;
 }
 
 export function CourtSVG({
@@ -17,6 +19,8 @@ export function CourtSVG({
   onSelectZone,
   heatmapData,
   showLabels = true,
+  interactive = true,
+  children,
 }: CourtSVGProps) {
   const isZoneSelected = (id: FloorZoneId) => {
     if (!selectedDestination) return false;
@@ -73,9 +77,9 @@ export function CourtSVG({
             zone={zone}
             isSelected={isZoneSelected(zone.id)}
             heatValue={heatmapData ? (heatmapData[zone.id] || 0) / Math.max(...Object.values(heatmapData), 1) : undefined}
-            onClick={() =>
+            onClick={interactive ? () =>
               onSelectZone({ type: 'single', zone: zone.id })
-            }
+            : () => {}}
           />
         ))}
 
@@ -85,13 +89,13 @@ export function CourtSVG({
             key={iz.label}
             zone={iz}
             isSelected={isIntermediateSelected(iz.zones[0], iz.zones[1])}
-            onClick={() =>
+            onClick={interactive ? () =>
               onSelectZone({
                 type: 'intermediate',
                 primary: iz.zones[0],
                 secondary: iz.zones[1],
               })
-            }
+            : () => {}}
           />
         ))}
 
@@ -111,11 +115,14 @@ export function CourtSVG({
         )}
 
         {/* Hint when no zone selected */}
-        {!selectedDestination && (
+        {interactive && !selectedDestination && (
           <text x="200" y="488" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="12" pointerEvents="none">
             Toca una zona donde cayo la pelota
           </text>
         )}
+
+        {/* Analysis overlay children */}
+        {children}
       </svg>
 
       {/* Selected zone info badge */}
