@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #0a0f1a;
@@ -20,25 +22,6 @@
   --court-zone-selected: rgba(34, 197, 94, 0.4);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-hover: var(--card-hover);
-  --color-border: var(--border);
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
-  --color-danger: var(--danger);
-  --color-muted: var(--muted);
-  --color-team1: var(--team1);
-  --color-team2: var(--team2);
-  --color-court: var(--court);
-  --color-court-line: var(--court-line);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
 body {
   background: var(--background);
