@@ -71,7 +71,6 @@ const WALL_SVG_ZONES: Array<{
 /** Offset zone points by dy. */
 function offsetZonePoints(zone: FloorZoneMetadata, dy: number): FloorZoneMetadata {
   const nums = zone.points.split(/[\s,]+/).map(Number);
-  // Points are x,y pairs
   const shifted = [];
   for (let i = 0; i < nums.length; i += 2) {
     shifted.push(`${nums[i]},${nums[i + 1] + dy}`);
@@ -102,6 +101,13 @@ export function CourtSVG({
   teamNames,
   shotType,
 }: CourtSVGProps) {
+  // In full court: top = always team1, bottom = always team2.
+  // playerTeam determines which half is active (bright + clickeable).
+  // No player selected = both halves dimmed.
+  const topActive = showFullCourt ? playerTeam === 'team1' : true;
+  const bottomActive = showFullCourt ? playerTeam === 'team2' : false;
+  const topDimmed = showFullCourt && !topActive;
+  const bottomDimmed = showFullCourt && !bottomActive;
 
   const isZoneSelected = (id: FloorZoneId) => {
     if (!selectedDestination) return false;
@@ -118,7 +124,6 @@ export function CourtSVG({
   };
 
   const hasWalls = showWalls && wallBounces && onWallToggle;
-  // In full court mode, hide fondo walls (they conflict with net separator)
   const wallZonesToRender = showFullCourt
     ? WALL_SVG_ZONES.filter((wz) => wz.wall !== 'fondo')
     : WALL_SVG_ZONES;
@@ -132,13 +137,9 @@ export function CourtSVG({
     viewBox = hasWalls ? '-40 0 480 540' : '0 0 400 500';
   }
 
-  // Team labels — when no player selected, show generic "Cancha rival" / "Tu cancha"
-  const rivalLabel = playerTeam && teamNames
-    ? (playerTeam === 'team1' ? teamNames.team2 : teamNames.team1)
-    : null;
-  const ownLabel = playerTeam && teamNames
-    ? (playerTeam === 'team1' ? teamNames.team1 : teamNames.team2)
-    : null;
+  // Labels: top = always team1, bottom = always team2
+  const team1Name = teamNames?.team1 ?? 'Equipo 1';
+  const team2Name = teamNames?.team2 ?? 'Equipo 2';
 
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -147,17 +148,17 @@ export function CourtSVG({
         className="w-full h-auto rounded-lg overflow-hidden"
         style={{ background: '#0f2e1a' }}
       >
-        {/* ===== RIVAL HALF (top, interactive) ===== */}
+        {/* ===== TOP HALF (always team1) ===== */}
 
         {/* Court base */}
         <rect x="0" y="0" width="400" height="500" fill="#163824" rx="8" />
 
         {/* Row background tints */}
-        <rect x="0" y="0" width="400" height="140" fill="rgba(220, 38, 38, 0.06)" />
-        <rect x="0" y="140" width="400" height="175" fill="rgba(5, 150, 105, 0.04)" />
-        <rect x="0" y="315" width="400" height="185" fill="rgba(37, 99, 235, 0.06)" />
+        <rect x="0" y="0" width="400" height="140" fill={topDimmed ? 'rgba(220, 38, 38, 0.02)' : 'rgba(220, 38, 38, 0.06)'} />
+        <rect x="0" y="140" width="400" height="175" fill={topDimmed ? 'rgba(5, 150, 105, 0.01)' : 'rgba(5, 150, 105, 0.04)'} />
+        <rect x="0" y="315" width="400" height="185" fill={topDimmed ? 'rgba(37, 99, 235, 0.02)' : 'rgba(37, 99, 235, 0.06)'} />
 
-        {/* Net line (original, top of court — only when NOT full court) */}
+        {/* Net line (original position — only when NOT full court) */}
         {!showFullCourt && (
           <>
             <line x1="0" y1="140" x2="400" y2="140" stroke="white" strokeWidth="3" opacity="0.5" />
@@ -168,37 +169,38 @@ export function CourtSVG({
         )}
 
         {/* Grid lines - columns */}
-        <line x1="80" y1="0" x2="80" y2="500" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-        <line x1="140" y1="0" x2="140" y2="500" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-        <line x1="200" y1="0" x2="200" y2="500" stroke="rgba(255,255,255,0.1)" strokeWidth="1" strokeDasharray="4,4" />
-        <line x1="260" y1="0" x2="260" y2="500" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-        <line x1="320" y1="0" x2="320" y2="500" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+        <line x1="80" y1="0" x2="80" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+        <line x1="140" y1="0" x2="140" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+        <line x1="200" y1="0" x2="200" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)'} strokeWidth="1" strokeDasharray="4,4" />
+        <line x1="260" y1="0" x2="260" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+        <line x1="320" y1="0" x2="320" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
 
         {/* Grid lines - rows */}
-        <line x1="0" y1="315" x2="400" y2="315" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+        <line x1="0" y1="315" x2="400" y2="315" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
 
-        {/* Rival team label (top) */}
+        {/* Team1 label (top) */}
         {showFullCourt && (
           <text x="200" y="20" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="11" fontWeight="bold" pointerEvents="none" letterSpacing="1">
-            {rivalLabel ? `LADO DE ${rivalLabel.toUpperCase()}` : 'CANCHA RIVAL'}
+            {team1Name.toUpperCase()}
           </text>
         )}
 
-        {/* Floor zones (rival — interactive) */}
+        {/* Floor zones (top half) */}
         {FLOOR_ZONES.map((zone) => (
           <FloorZone
             key={zone.id}
             zone={zone}
-            isSelected={isZoneSelected(zone.id)}
+            isSelected={topDimmed ? false : isZoneSelected(zone.id)}
             heatValue={heatmapData ? (heatmapData[zone.id] || 0) / Math.max(...Object.values(heatmapData), 1) : undefined}
-            onClick={interactive ? () =>
+            onClick={interactive && !topDimmed ? () =>
               onSelectZone({ type: 'single', zone: zone.id })
             : () => {}}
+            dimmed={topDimmed}
           />
         ))}
 
-        {/* Intermediate zone lines */}
-        {INTERMEDIATE_ZONE_LINES.map((iz) => (
+        {/* Intermediate zone lines (top half) */}
+        {!topDimmed && INTERMEDIATE_ZONE_LINES.map((iz) => (
           <IntermediateZone
             key={iz.label}
             zone={iz}
@@ -225,44 +227,69 @@ export function CourtSVG({
           </>
         )}
 
-        {/* ===== OWN HALF (bottom, dimmed, non-interactive) ===== */}
+        {/* ===== BOTTOM HALF (always team2) ===== */}
         {showFullCourt && (
           <>
-            {/* Own court base */}
+            {/* Bottom court base */}
             <rect x="0" y={MIRROR_OFFSET} width="400" height="500" fill="#163824" />
 
-            {/* Own row background tints (same order: red near net, fondo at bottom) */}
-            <rect x="0" y={MIRROR_OFFSET} width="400" height="140" fill="rgba(220, 38, 38, 0.03)" />
-            <rect x="0" y={MIRROR_OFFSET + 140} width="400" height="175" fill="rgba(5, 150, 105, 0.02)" />
-            <rect x="0" y={MIRROR_OFFSET + 315} width="400" height="185" fill="rgba(37, 99, 235, 0.03)" />
+            {/* Bottom row background tints */}
+            <rect x="0" y={MIRROR_OFFSET} width="400" height="140" fill={bottomDimmed ? 'rgba(220, 38, 38, 0.02)' : 'rgba(220, 38, 38, 0.06)'} />
+            <rect x="0" y={MIRROR_OFFSET + 140} width="400" height="175" fill={bottomDimmed ? 'rgba(5, 150, 105, 0.01)' : 'rgba(5, 150, 105, 0.04)'} />
+            <rect x="0" y={MIRROR_OFFSET + 315} width="400" height="185" fill={bottomDimmed ? 'rgba(37, 99, 235, 0.02)' : 'rgba(37, 99, 235, 0.06)'} />
 
-            {/* Own grid lines - columns */}
-            <line x1="80" y1={MIRROR_OFFSET} x2="80" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-            <line x1="140" y1={MIRROR_OFFSET} x2="140" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-            <line x1="200" y1={MIRROR_OFFSET} x2="200" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4,4" />
-            <line x1="260" y1={MIRROR_OFFSET} x2="260" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-            <line x1="320" y1={MIRROR_OFFSET} x2="320" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            {/* Bottom grid lines - columns */}
+            <line x1="80" y1={MIRROR_OFFSET} x2="80" y2={MIRROR_OFFSET + 500} stroke={bottomDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+            <line x1="140" y1={MIRROR_OFFSET} x2="140" y2={MIRROR_OFFSET + 500} stroke={bottomDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+            <line x1="200" y1={MIRROR_OFFSET} x2="200" y2={MIRROR_OFFSET + 500} stroke={bottomDimmed ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)'} strokeWidth="1" strokeDasharray="4,4" />
+            <line x1="260" y1={MIRROR_OFFSET} x2="260" y2={MIRROR_OFFSET + 500} stroke={bottomDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+            <line x1="320" y1={MIRROR_OFFSET} x2="320" y2={MIRROR_OFFSET + 500} stroke={bottomDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
 
-            {/* Own grid lines - rows */}
-            <line x1="0" y1={MIRROR_OFFSET + 315} x2="400" y2={MIRROR_OFFSET + 315} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            {/* Bottom grid lines - rows */}
+            <line x1="0" y1={MIRROR_OFFSET + 315} x2="400" y2={MIRROR_OFFSET + 315} stroke={bottomDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
 
-            {/* Own floor zones (dimmed, non-interactive) */}
+            {/* Bottom floor zones */}
             {FLOOR_ZONES.map((zone) => {
               const mirrored = offsetZonePoints(zone, MIRROR_OFFSET);
               return (
                 <FloorZone
-                  key={`own-${zone.id}`}
+                  key={`bottom-${zone.id}`}
                   zone={mirrored}
-                  isSelected={false}
-                  onClick={() => {}}
-                  dimmed
+                  isSelected={bottomDimmed ? false : isZoneSelected(zone.id)}
+                  onClick={interactive && !bottomDimmed ? () =>
+                    onSelectZone({ type: 'single', zone: zone.id })
+                  : () => {}}
+                  dimmed={bottomDimmed}
                 />
               );
             })}
 
-            {/* Own team label (bottom) */}
+            {/* Bottom intermediate zone lines */}
+            {!bottomDimmed && INTERMEDIATE_ZONE_LINES.map((iz) => {
+              const shifted = {
+                ...iz,
+                y1: iz.y1 + MIRROR_OFFSET,
+                y2: iz.y2 + MIRROR_OFFSET,
+              };
+              return (
+                <IntermediateZone
+                  key={`bottom-${iz.label}`}
+                  zone={shifted}
+                  isSelected={isIntermediateSelected(iz.zones[0], iz.zones[1])}
+                  onClick={interactive ? () =>
+                    onSelectZone({
+                      type: 'intermediate',
+                      primary: iz.zones[0],
+                      secondary: iz.zones[1],
+                    })
+                  : () => {}}
+                />
+              );
+            })}
+
+            {/* Team2 label (bottom) */}
             <text x="200" y={MIRROR_OFFSET + 490} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="11" fontWeight="bold" pointerEvents="none" letterSpacing="1">
-              {ownLabel ? `TU LADO (${ownLabel.toUpperCase()})` : 'TU CANCHA'}
+              {team2Name.toUpperCase()}
             </text>
           </>
         )}
@@ -325,8 +352,8 @@ export function CourtSVG({
           </>
         )}
 
-        {/* Row labels */}
-        {showLabels && (
+        {/* Row labels (top half only) */}
+        {showLabels && !topDimmed && (
           <>
             <text x="200" y="78" textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="36" fontWeight="900" pointerEvents="none" letterSpacing="6">
               RED
@@ -335,6 +362,21 @@ export function CourtSVG({
               MEDIA
             </text>
             <text x="200" y="418" textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="36" fontWeight="900" pointerEvents="none" letterSpacing="6">
+              FONDO
+            </text>
+          </>
+        )}
+
+        {/* Row labels (bottom half, when active) */}
+        {showLabels && showFullCourt && !bottomDimmed && (
+          <>
+            <text x="200" y={MIRROR_OFFSET + 78} textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="36" fontWeight="900" pointerEvents="none" letterSpacing="6">
+              RED
+            </text>
+            <text x="200" y={MIRROR_OFFSET + 238} textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="36" fontWeight="900" pointerEvents="none" letterSpacing="6">
+              MEDIA
+            </text>
+            <text x="200" y={MIRROR_OFFSET + 418} textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="36" fontWeight="900" pointerEvents="none" letterSpacing="6">
               FONDO
             </text>
           </>
