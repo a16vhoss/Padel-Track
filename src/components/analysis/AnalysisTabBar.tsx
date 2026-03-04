@@ -1,6 +1,6 @@
 'use client';
 
-export type AnalysisTab = 'heatmap' | 'winnersErrors' | 'zoneFlow' | 'pointReplay';
+export type AnalysisTab = 'heatmap' | 'winnersErrors' | 'zoneFlow' | 'wallHeatmap' | 'pointReplay';
 
 interface AnalysisTabBarProps {
   activeTab: AnalysisTab;
@@ -11,6 +11,7 @@ const TABS: { id: AnalysisTab; label: string; icon: string }[] = [
   { id: 'heatmap', label: 'Calor', icon: '🔥' },
   { id: 'winnersErrors', label: 'W vs X', icon: '🎯' },
   { id: 'zoneFlow', label: 'Flujo', icon: '↗' },
+  { id: 'wallHeatmap', label: 'Paredes', icon: '🧱' },
   { id: 'pointReplay', label: 'Replay', icon: '▶' },
 ];
 

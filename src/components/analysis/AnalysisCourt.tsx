@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Match } from '@/types/match';
-import { AnalysisFilter } from '@/lib/stats/advancedStats';
+import { AnalysisFilter, computeWallHeatmap } from '@/lib/stats/advancedStats';
 import { useAdvancedStats } from '@/hooks/useAdvancedStats';
 import { CourtSVG } from '@/components/court/CourtSVG';
 import { AnalysisTabBar, AnalysisTab } from './AnalysisTabBar';
@@ -12,28 +12,35 @@ import { WinnersErrorsOverlay } from './overlays/WinnersErrorsOverlay';
 import { ZoneFlowOverlay } from './overlays/ZoneFlowOverlay';
 import { PointReplayOverlay } from './overlays/PointReplayOverlay';
 import { PointReplayControls } from './PointReplayControls';
+import { WallHeatmapOverlay } from '@/components/court/WallHeatmapOverlay';
 
 interface AnalysisCourtProps {
   match: Match;
+  setFilter?: number;
 }
 
-export function AnalysisCourt({ match }: AnalysisCourtProps) {
+export function AnalysisCourt({ match, setFilter }: AnalysisCourtProps) {
   const [activeTab, setActiveTab] = useState<AnalysisTab>('heatmap');
-  const [filter, setFilter] = useState<AnalysisFilter>({ type: 'all' });
+  const [filter, setFilter_] = useState<AnalysisFilter>({ type: 'all' });
   const [replayPointIdx, setReplayPointIdx] = useState(0);
   const [replayStep, setReplayStep] = useState(0);
 
   const stats = useAdvancedStats(match, filter);
+  const wallHeatmap = useMemo(
+    () => computeWallHeatmap(match, undefined, setFilter),
+    [match, setFilter],
+  );
 
   if (!stats) return null;
 
   const replayPoint = stats.replayPoints[replayPointIdx];
-  const totalReplaySteps = replayPoint?.shots.length ?? 0;
 
   const handleReplayPointChange = (idx: number) => {
     setReplayPointIdx(idx);
     setReplayStep(0);
   };
+
+  const isWallTab = activeTab === 'wallHeatmap';
 
   const renderOverlay = () => {
     switch (activeTab) {
@@ -43,6 +50,8 @@ export function AnalysisCourt({ match }: AnalysisCourtProps) {
         return <WinnersErrorsOverlay data={stats.winnersErrors} />;
       case 'zoneFlow':
         return <ZoneFlowOverlay transitions={stats.zoneFlow} />;
+      case 'wallHeatmap':
+        return <WallHeatmapOverlay data={wallHeatmap} />;
       case 'pointReplay':
         return replayPoint ? (
           <PointReplayOverlay
@@ -64,7 +73,7 @@ export function AnalysisCourt({ match }: AnalysisCourtProps) {
       <AnalysisFilters
         match={match}
         filter={filter}
-        onFilterChange={setFilter}
+        onFilterChange={setFilter_}
         activeTab={activeTab}
         replayPoints={stats.replayPoints}
         selectedPointIdx={replayPointIdx}
@@ -78,6 +87,9 @@ export function AnalysisCourt({ match }: AnalysisCourtProps) {
         onSelectZone={() => {}}
         showLabels={false}
         interactive={false}
+        wallHeatmapData={isWallTab ? Object.fromEntries(
+          Object.entries(wallHeatmap.zones).map(([k, v]) => [k, v.total])
+        ) : undefined}
       >
         {renderOverlay()}
       </CourtSVG>

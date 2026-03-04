@@ -33,8 +33,11 @@ function getWallHeight(wallId: WallZoneId): 'baja' | 'alta' {
   return 'alta';
 }
 
-export function computeWallStats(match: Match, playerFilter?: PlayerId): WallUsageStats {
-  const points = getAllPoints(match);
+export function computeWallStats(match: Match, playerFilter?: PlayerId, setFilter?: number): WallUsageStats {
+  let points = getAllPoints(match);
+  if (setFilter !== undefined) {
+    points = points.filter((p) => p.setNumber === setFilter);
+  }
   const wallShotsByZone: Record<string, number> = {};
   const wallShotsByPlayer: Record<string, number> = {};
   let totalWallShots = 0;
@@ -52,17 +55,22 @@ export function computeWallStats(match: Match, playerFilter?: PlayerId): WallUsa
       return s.modifiers.wallBounces.length > 0;
     });
 
+    // Win tracking only makes sense with a player/team filter
+    const filterTeam = playerFilter
+      ? ((playerFilter === 'J1' || playerFilter === 'J2') ? 'team1' : 'team2')
+      : null;
+
     if (pointHasWall) {
       wallTotal++;
-      if (point.winner === ((playerFilter === 'J1' || playerFilter === 'J2') ? 'team1' : playerFilter ? 'team2' : point.winner)) {
-        wallWins++;
-      } else {
-        wallLosses++;
+      if (filterTeam) {
+        if (point.winner === filterTeam) wallWins++;
+        else wallLosses++;
       }
     } else {
       noWallTotal++;
-      // simplified win tracking
-      noWallWins++;
+      if (filterTeam && point.winner === filterTeam) {
+        noWallWins++;
+      }
     }
 
     for (const shot of point.shots) {

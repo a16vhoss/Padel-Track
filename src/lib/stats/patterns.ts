@@ -94,8 +94,11 @@ function analyzePatterns(
     .sort((a, b) => b.count - a.count);
 }
 
-export function computePatterns(match: Match): PatternAnalysis {
-  const points = getAllPoints(match);
+export function computePatterns(match: Match, setFilter?: number): PatternAnalysis {
+  let points = getAllPoints(match);
+  if (setFilter !== undefined) {
+    points = points.filter((p) => p.setNumber === setFilter);
+  }
 
   const twoShotCombos = analyzePatterns(points, 2);
   const threeShotCombos = analyzePatterns(points, 3);

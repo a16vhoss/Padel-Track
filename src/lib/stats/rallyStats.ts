@@ -26,8 +26,11 @@ function getAllPoints(match: Match): Point[] {
   return match.sets.flatMap((s) => s.games.flatMap((g) => g.points));
 }
 
-export function computeRallyStats(match: Match): RallyStats {
-  const points = getAllPoints(match);
+export function computeRallyStats(match: Match, setFilter?: number): RallyStats {
+  let points = getAllPoints(match);
+  if (setFilter !== undefined) {
+    points = points.filter((p) => p.setNumber === setFilter);
+  }
   if (points.length === 0) {
     return {
       averageRallyLength: 0,

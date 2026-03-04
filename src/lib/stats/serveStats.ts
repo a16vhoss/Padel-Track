@@ -29,9 +29,13 @@ function isPlayerInTeam(player: PlayerId, team: 'team1' | 'team2'): boolean {
 
 export function computeServeStats(
   match: Match,
-  filter?: { type: 'player'; player: PlayerId } | { type: 'team'; team: 'team1' | 'team2' } | { type: 'all' }
+  filter?: { type: 'player'; player: PlayerId } | { type: 'team'; team: 'team1' | 'team2' } | { type: 'all' },
+  setFilter?: number,
 ): ServeStats {
-  const points = getAllPoints(match);
+  let points = getAllPoints(match);
+  if (setFilter !== undefined) {
+    points = points.filter((p) => p.setNumber === setFilter);
+  }
   const stats: ServeStats = {
     totalServes: 0,
     firstServeIn: 0,
@@ -122,11 +126,159 @@ export function computeServeStats(
   }
 
   // Calculate percentages
-  const firstServeAttempts = stats.firstServeIn + (stats.totalServes - stats.firstServeIn);
-  stats.firstServePct = firstServeAttempts > 0 ? Math.round((stats.firstServeIn / stats.totalServes) * 100) : 0;
-  stats.secondServePct = stats.secondServePointsTotal > 0 ? Math.round((stats.secondServeIn / (stats.totalServes - stats.firstServeIn)) * 100) : 0;
+  // First serve %: how many first serves went in out of total points served
+  const totalPointsServed = points.filter((p) => {
+    const server = p.server;
+    if (filter) {
+      if (filter.type === 'player' && server !== filter.player) return false;
+      if (filter.type === 'team' && !isPlayerInTeam(server, filter.team)) return false;
+    }
+    return p.shots.some((s) => s.type === 'S' && s.player === server);
+  }).length;
+  stats.firstServePct = totalPointsServed > 0 ? Math.round((stats.firstServeIn / totalPointsServed) * 100) : 0;
+  const secondServeAttempts = totalPointsServed - stats.firstServeIn;
+  stats.secondServePct = secondServeAttempts > 0 ? Math.round((stats.secondServeIn / secondServeAttempts) * 100) : 0;
   stats.firstServeWinPct = stats.firstServePointsTotal > 0 ? Math.round((stats.firstServePointsWon / stats.firstServePointsTotal) * 100) : 0;
   stats.secondServeWinPct = stats.secondServePointsTotal > 0 ? Math.round((stats.secondServePointsWon / stats.secondServePointsTotal) * 100) : 0;
 
   return stats;
+}
+
+// ---------------------------------------------------------------------------
+// Return Stats
+// ---------------------------------------------------------------------------
+
+export interface ReturnStats {
+  pointsWon: number;
+  pointsTotal: number;
+  winPct: number;
+  breakPointsWon: number;
+  breakPointsTotal: number;
+  breakPct: number;
+  gamesWonOnReturn: number;
+  gamesTotalOnReturn: number;
+  returnWinners: number;
+  returnErrors: number;
+}
+
+export function computeReturnStats(
+  match: Match,
+  teamFilter: 'team1' | 'team2',
+  setFilter?: number,
+): ReturnStats {
+  const stats: ReturnStats = {
+    pointsWon: 0, pointsTotal: 0, winPct: 0,
+    breakPointsWon: 0, breakPointsTotal: 0, breakPct: 0,
+    gamesWonOnReturn: 0, gamesTotalOnReturn: 0,
+    returnWinners: 0, returnErrors: 0,
+  };
+
+  const sets = setFilter !== undefined
+    ? match.sets.filter((s) => s.setNumber === setFilter)
+    : match.sets;
+
+  for (const set of sets) {
+    for (const game of set.games) {
+      const serverTeam = isPlayerInTeam(game.server, 'team1') ? 'team1' : 'team2';
+      if (serverTeam === teamFilter) continue; // we want games where teamFilter is returning
+
+      stats.gamesTotalOnReturn++;
+      if (game.winner === teamFilter) stats.gamesWonOnReturn++;
+
+      for (const point of game.points) {
+        stats.pointsTotal++;
+        if (point.winner === teamFilter) stats.pointsWon++;
+
+        // Check break points
+        const scoreParts = point.scoreBefore.split('-');
+        if (scoreParts.length === 2) {
+          const returnerScore = serverTeam === 'team1' ? scoreParts[1] : scoreParts[0];
+          const serverScore = serverTeam === 'team1' ? scoreParts[0] : scoreParts[1];
+          if ((returnerScore === '40' || returnerScore === 'Ad') && serverScore !== 'Ad') {
+            stats.breakPointsTotal++;
+            if (point.winner === teamFilter) stats.breakPointsWon++;
+          }
+        }
+
+        // Return shot quality
+        const returnShots = point.shots.filter((s) =>
+          s.type === 'Re' && isPlayerInTeam(s.player, teamFilter)
+        );
+        for (const shot of returnShots) {
+          if (shot.status === 'W') stats.returnWinners++;
+          if (shot.status === 'X') stats.returnErrors++;
+        }
+      }
+    }
+  }
+
+  stats.winPct = stats.pointsTotal > 0 ? Math.round((stats.pointsWon / stats.pointsTotal) * 100) : 0;
+  stats.breakPct = stats.breakPointsTotal > 0 ? Math.round((stats.breakPointsWon / stats.breakPointsTotal) * 100) : 0;
+
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// Serve Direction Stats
+// ---------------------------------------------------------------------------
+
+export interface ServeDirectionEntry {
+  server: PlayerId;
+  side: 'derecha' | 'izquierda';
+  zone: number;
+  count: number;
+  winners: number;
+  errors: number;
+}
+
+export interface ServeDirectionStats {
+  byServer: Record<string, ServeDirectionEntry[]>;
+}
+
+export function computeServeDirections(
+  match: Match,
+  setFilter?: number,
+): ServeDirectionStats {
+  let points = getAllPoints(match);
+  if (setFilter !== undefined) {
+    points = points.filter((p) => p.setNumber === setFilter);
+  }
+
+  const entries = new Map<string, ServeDirectionEntry>();
+
+  for (const point of points) {
+    const server = point.server;
+    const side = point.serveSide;
+    const serves = point.shots.filter((s) => s.type === 'S' && s.player === server);
+
+    for (const serve of serves) {
+      if (!serve.destination) continue;
+      const zone = serve.destination.type === 'single'
+        ? serve.destination.zone
+        : serve.destination.primary;
+
+      const key = `${server}-${side}-${zone}`;
+      const existing = entries.get(key) || {
+        server, side, zone, count: 0, winners: 0, errors: 0,
+      };
+      existing.count++;
+      if (serve.status === 'W') existing.winners++;
+      if (serve.status === 'X' || serve.status === 'DF') existing.errors++;
+      entries.set(key, existing);
+    }
+  }
+
+  const all = Array.from(entries.values());
+  const byServer: Record<string, ServeDirectionEntry[]> = {};
+  for (const entry of all) {
+    if (!byServer[entry.server]) byServer[entry.server] = [];
+    byServer[entry.server].push(entry);
+  }
+
+  // Sort each server's entries by count descending
+  for (const key of Object.keys(byServer)) {
+    byServer[key].sort((a, b) => b.count - a.count);
+  }
+
+  return { byServer };
 }

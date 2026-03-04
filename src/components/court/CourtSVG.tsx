@@ -13,6 +13,7 @@ interface CourtSVGProps {
   selectedDestination: ZoneDestination | null;
   onSelectZone: (dest: ZoneDestination) => void;
   heatmapData?: Record<number, number>;
+  wallHeatmapData?: Record<string, number>;
   showLabels?: boolean;
   interactive?: boolean;
   children?: React.ReactNode;
@@ -128,6 +129,7 @@ export function CourtSVG({
   selectedDestination,
   onSelectZone,
   heatmapData,
+  wallHeatmapData,
   showLabels = true,
   interactive = true,
   children,
@@ -173,13 +175,14 @@ export function CourtSVG({
   const showWallZones = showFullCourt ? (topActive || bottomActive) : true;
 
   // Compute viewBox — wider to accommodate wider walls
+  const showWideView = hasWalls || !!wallHeatmapData;
   let viewBox: string;
   if (showFullCourt) {
-    const bottomWallExtra = bottomActive && hasWalls ? 62 : 0;
+    const bottomWallExtra = bottomActive && showWideView ? 62 : 0;
     const totalHeight = MIRROR_OFFSET + 500 + bottomWallExtra;
-    viewBox = hasWalls ? `-62 0 524 ${totalHeight}` : `0 0 400 ${totalHeight}`;
+    viewBox = showWideView ? `-62 0 524 ${totalHeight}` : `0 0 400 ${totalHeight}`;
   } else {
-    viewBox = hasWalls ? '-62 0 524 564' : '0 0 400 500';
+    viewBox = showWideView ? '-62 0 524 564' : '0 0 400 500';
   }
 
   const team1Name = teamNames?.team1 ?? 'Equipo 1';
@@ -667,6 +670,34 @@ export function CourtSVG({
           <text x="200" y="488" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="12" pointerEvents="none">
             Toca una zona donde cayo la pelota
           </text>
+        )}
+
+        {/* Wall zone backgrounds for heatmap mode */}
+        {wallHeatmapData && !hasWalls && (
+          <g opacity="0.6">
+            {WALL_SVG_ZONES.map((wz) => {
+              const patternId = wz.level === 'baja' ? 'pattern-glass' : 'pattern-mesh';
+              return (
+                <g key={`wh-bg-${wz.id}`}>
+                  <rect
+                    x={wz.x} y={wz.y}
+                    width={wz.width} height={wz.height}
+                    fill="rgba(139,92,246,0.08)" rx="2"
+                  />
+                  <rect
+                    x={wz.x} y={wz.y}
+                    width={wz.width} height={wz.height}
+                    fill={`url(#${patternId})`} rx="2"
+                  />
+                  <rect
+                    x={wz.x} y={wz.y}
+                    width={wz.width} height={wz.height}
+                    fill="none" stroke="rgba(139,92,246,0.2)" strokeWidth="0.5" rx="2"
+                  />
+                </g>
+              );
+            })}
+          </g>
         )}
 
         {/* Analysis overlay children */}
