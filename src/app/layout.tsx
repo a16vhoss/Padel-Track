@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PWARegister } from "@/components/PWARegister";
 import { NavBar } from "@/components/ui/NavBar";
+import { ToastContainer } from "@/components/ui/Toast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,6 +42,7 @@ export default function RootLayout({
         <main className="max-w-7xl mx-auto px-4 py-6">
           {children}
         </main>
+        <ToastContainer />
       </body>
     </html>
   );

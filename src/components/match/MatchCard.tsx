@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Match } from '@/types/match';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { relativeTime, formatDuration } from '@/lib/utils/relativeTime';
 
 interface MatchCardProps {
   match: Match;
@@ -28,6 +29,11 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
     .map((s) => `${s.score.team1}-${s.score.team2}`)
     .join(' / ');
 
+  const totalPoints = match.sets.reduce(
+    (sum, s) => sum + s.games.reduce((gSum, g) => gSum + g.points.length, 0),
+    0
+  );
+
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -40,12 +46,17 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
     <Link href={`/partido/${match.id}/registro`}>
       <Card hover className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <Badge variant={statusVariants[match.status]}>
-            {statusLabels[match.status]}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={statusVariants[match.status]}>
+              {statusLabels[match.status]}
+            </Badge>
+            {match.status === 'live' && (
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted">
-              {new Date(match.createdAt).toLocaleDateString('es-ES')}
+              {relativeTime(match.createdAt)}
             </span>
             {onDelete && (
               <button
@@ -69,7 +80,9 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
               {match.teams[0].players.map((p) => p.shortName).join(' / ')}
             </span>
           </div>
-          {setsDisplay && <span className="font-mono text-sm">{setsDisplay}</span>}
+          {setsDisplay && (
+            <span className="font-mono text-sm font-semibold tracking-wide">{setsDisplay}</span>
+          )}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">
               {match.teams[1].players.map((p) => p.shortName).join(' / ')}
@@ -78,11 +91,24 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
           </div>
         </div>
 
-        {match.winner && (
-          <div className="text-xs text-primary">
-            Ganador: {match.teams[match.winner === 'team1' ? 0 : 1].name}
+        {/* Footer: winner + stats */}
+        <div className="flex items-center justify-between pt-1 border-t border-border/50">
+          {match.winner ? (
+            <span className="text-xs text-primary font-medium">
+              Ganador: {match.teams[match.winner === 'team1' ? 0 : 1].name}
+            </span>
+          ) : (
+            <span className="text-xs text-muted">En curso</span>
+          )}
+          <div className="flex items-center gap-3 text-xs text-muted">
+            {totalPoints > 0 && (
+              <span>{totalPoints} pts</span>
+            )}
+            {match.totalDurationMs && match.totalDurationMs > 0 && (
+              <span>{formatDuration(match.totalDurationMs)}</span>
+            )}
           </div>
-        )}
+        </div>
       </Card>
     </Link>
   );

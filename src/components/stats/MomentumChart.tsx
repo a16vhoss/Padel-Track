@@ -2,6 +2,7 @@
 
 import { MomentumData } from '@/lib/stats/momentum';
 import { Card } from '@/components/ui/Card';
+import { useChartTheme } from '@/lib/utils/chartTheme';
 
 interface MomentumChartProps {
   data: MomentumData;
@@ -10,6 +11,8 @@ interface MomentumChartProps {
 }
 
 export function MomentumChart({ data, team1Name, team2Name }: MomentumChartProps) {
+  const theme = useChartTheme();
+
   if (data.points.length === 0) {
     return null;
   }
@@ -27,7 +30,7 @@ export function MomentumChart({ data, team1Name, team2Name }: MomentumChartProps
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-32" preserveAspectRatio="none">
           {/* Center line */}
-          <line x1="0" y1={midY} x2={chartWidth} y2={midY} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4,4" />
+          <line x1="0" y1={midY} x2={chartWidth} y2={midY} stroke={`${theme.muted}30`} strokeWidth="1" strokeDasharray="4,4" />
 
           {/* Momentum line */}
           <polyline
@@ -51,7 +54,7 @@ export function MomentumChart({ data, team1Name, team2Name }: MomentumChartProps
                 return `L ${x},${y}`;
               }).join(' ') +
               ` L ${chartWidth},${midY} Z`}
-            fill="rgba(34,197,94,0.1)"
+            fill={`${theme.team1}1a`}
           />
 
           {/* Break point markers */}
@@ -60,22 +63,22 @@ export function MomentumChart({ data, team1Name, team2Name }: MomentumChartProps
             const x = (i / Math.max(data.points.length - 1, 1)) * chartWidth;
             const y = midY - (p.momentum / maxAbs) * (midY - 8);
             return (
-              <circle key={i} cx={x} cy={y} r="3" fill="rgba(245,158,11,0.8)" />
+              <circle key={i} cx={x} cy={y} r="3" fill={`${theme.accent}cc`} />
             );
           })}
 
           <defs>
             <linearGradient id="momentum-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22c55e" />
-              <stop offset="50%" stopColor="#ffffff" />
-              <stop offset="100%" stopColor="#3b82f6" />
+              <stop offset="0%" stopColor={theme.team1} />
+              <stop offset="50%" stopColor={theme.foreground} />
+              <stop offset="100%" stopColor={theme.team2} />
             </linearGradient>
           </defs>
         </svg>
       </div>
 
       {/* Team labels */}
-      <div className="flex justify-between text-[10px] text-muted mt-1 mb-3">
+      <div className="flex justify-between text-xs text-muted mt-1 mb-3">
         <span className="text-green-400">{team1Name}</span>
         <span className="text-blue-400">{team2Name}</span>
       </div>
@@ -83,22 +86,22 @@ export function MomentumChart({ data, team1Name, team2Name }: MomentumChartProps
       {/* Key stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div className="bg-background/50 rounded p-2">
-          <div className="text-muted text-[10px]">Racha mas larga</div>
+          <div className="text-muted text-xs">Racha más larga</div>
           <div className="font-bold">{data.longestStreak.length} pts</div>
-          <div className="text-[10px] text-muted">{data.longestStreak.team === 'team1' ? team1Name : team2Name}</div>
+          <div className="text-xs text-muted">{data.longestStreak.team === 'team1' ? team1Name : team2Name}</div>
         </div>
         <div className="bg-background/50 rounded p-2">
-          <div className="text-muted text-[10px]">Break Points</div>
+          <div className="text-muted text-xs">Break Points</div>
           <div className="font-bold text-green-400">{data.breakPointsWon.team1}/{data.breakPointsTotal.team1}</div>
-          <div className="text-[10px] text-muted">{team1Name}</div>
+          <div className="text-xs text-muted">{team1Name}</div>
         </div>
         <div className="bg-background/50 rounded p-2">
-          <div className="text-muted text-[10px]">Break Points</div>
+          <div className="text-muted text-xs">Break Points</div>
           <div className="font-bold text-blue-400">{data.breakPointsWon.team2}/{data.breakPointsTotal.team2}</div>
-          <div className="text-[10px] text-muted">{team2Name}</div>
+          <div className="text-xs text-muted">{team2Name}</div>
         </div>
         <div className="bg-background/50 rounded p-2">
-          <div className="text-muted text-[10px]">Puntos con break point marker</div>
+          <div className="text-muted text-xs">Break points totales</div>
           <div className="font-bold text-amber-400">{data.points.filter((p) => p.isBreakPoint).length}</div>
         </div>
       </div>
