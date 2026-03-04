@@ -104,8 +104,10 @@ export function CourtSVG({
   // In full court: top = always team1, bottom = always team2.
   // playerTeam determines which half is active (bright + clickeable).
   // No player selected = both halves dimmed.
-  const topActive = showFullCourt ? playerTeam === 'team1' : true;
-  const bottomActive = showFullCourt ? playerTeam === 'team2' : false;
+  // If team1 player selected → ball lands on team2's side (bottom active)
+  // If team2 player selected → ball lands on team1's side (top active)
+  const topActive = showFullCourt ? playerTeam === 'team2' : true;
+  const bottomActive = showFullCourt ? playerTeam === 'team1' : false;
   const topDimmed = showFullCourt && !topActive;
   const bottomDimmed = showFullCourt && !bottomActive;
 
