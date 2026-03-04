@@ -35,6 +35,7 @@ interface WallZoneDef {
   height: 'baja' | 'alta';
   wall: 'fondo' | 'lateral_izq' | 'lateral_der';
   connectedFloorZones: FloorZoneId[];
+  displayName: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -50,6 +51,7 @@ const fondoBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'fondo',
     connectedFloorZones: [1],
+    displayName: 'Pared fondo izq (vidrio)',
   },
   {
     id: 'P2',
@@ -59,6 +61,7 @@ const fondoBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'fondo',
     connectedFloorZones: [2, 3],
+    displayName: 'Pared fondo centro-izq (vidrio)',
   },
   {
     id: 'P3',
@@ -68,6 +71,7 @@ const fondoBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'fondo',
     connectedFloorZones: [3, 4],
+    displayName: 'Pared fondo centro-der (vidrio)',
   },
   {
     id: 'P4',
@@ -77,6 +81,7 @@ const fondoBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'fondo',
     connectedFloorZones: [5],
+    displayName: 'Pared fondo der (vidrio)',
   },
 ];
 
@@ -93,6 +98,7 @@ const fondoAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'fondo',
     connectedFloorZones: [1],
+    displayName: 'Pared fondo izq (reja)',
   },
   {
     id: 'P6',
@@ -102,6 +108,7 @@ const fondoAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'fondo',
     connectedFloorZones: [2, 3],
+    displayName: 'Pared fondo centro-izq (reja)',
   },
   {
     id: 'P7',
@@ -111,6 +118,7 @@ const fondoAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'fondo',
     connectedFloorZones: [3, 4],
+    displayName: 'Pared fondo centro-der (reja)',
   },
   {
     id: 'P8',
@@ -120,6 +128,7 @@ const fondoAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'fondo',
     connectedFloorZones: [5],
+    displayName: 'Pared fondo der (reja)',
   },
 ];
 
@@ -136,6 +145,7 @@ const lateralIzqBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_izq',
     connectedFloorZones: [1],
+    displayName: 'Lateral izq fondo (vidrio)',
   },
   {
     id: 'P10',
@@ -145,6 +155,7 @@ const lateralIzqBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_izq',
     connectedFloorZones: [1, 6],
+    displayName: 'Lateral izq media-fondo (vidrio)',
   },
   {
     id: 'P11',
@@ -154,6 +165,7 @@ const lateralIzqBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_izq',
     connectedFloorZones: [6, 11],
+    displayName: 'Lateral izq media-red (vidrio)',
   },
   {
     id: 'P12',
@@ -163,6 +175,7 @@ const lateralIzqBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_izq',
     connectedFloorZones: [11],
+    displayName: 'Lateral izq red (vidrio)',
   },
 ];
 
@@ -179,6 +192,7 @@ const lateralIzqAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_izq',
     connectedFloorZones: [1],
+    displayName: 'Lateral izq fondo (reja)',
   },
   {
     id: 'P14',
@@ -188,6 +202,7 @@ const lateralIzqAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_izq',
     connectedFloorZones: [1, 6],
+    displayName: 'Lateral izq media-fondo (reja)',
   },
   {
     id: 'P15',
@@ -197,6 +212,7 @@ const lateralIzqAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_izq',
     connectedFloorZones: [6, 11],
+    displayName: 'Lateral izq media-red (reja)',
   },
   {
     id: 'P16',
@@ -206,6 +222,7 @@ const lateralIzqAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_izq',
     connectedFloorZones: [11],
+    displayName: 'Lateral izq red (reja)',
   },
 ];
 
@@ -222,6 +239,7 @@ const lateralDerBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_der',
     connectedFloorZones: [5],
+    displayName: 'Lateral der fondo (vidrio)',
   },
   {
     id: 'P18',
@@ -231,6 +249,7 @@ const lateralDerBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_der',
     connectedFloorZones: [5, 10],
+    displayName: 'Lateral der media-fondo (vidrio)',
   },
   {
     id: 'P19',
@@ -240,6 +259,7 @@ const lateralDerBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_der',
     connectedFloorZones: [10, 15],
+    displayName: 'Lateral der media-red (vidrio)',
   },
   {
     id: 'P20',
@@ -249,6 +269,7 @@ const lateralDerBaja: WallZoneDef[] = [
     height: 'baja',
     wall: 'lateral_der',
     connectedFloorZones: [15],
+    displayName: 'Lateral der red (vidrio)',
   },
 ];
 
@@ -265,6 +286,7 @@ const lateralDerAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_der',
     connectedFloorZones: [5],
+    displayName: 'Lateral der fondo (reja)',
   },
   {
     id: 'P22',
@@ -274,6 +296,7 @@ const lateralDerAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_der',
     connectedFloorZones: [5, 10],
+    displayName: 'Lateral der media-fondo (reja)',
   },
   {
     id: 'P23',
@@ -283,6 +306,7 @@ const lateralDerAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_der',
     connectedFloorZones: [10, 15],
+    displayName: 'Lateral der media-red (reja)',
   },
   {
     id: 'P24',
@@ -292,6 +316,7 @@ const lateralDerAlta: WallZoneDef[] = [
     height: 'alta',
     wall: 'lateral_der',
     connectedFloorZones: [15],
+    displayName: 'Lateral der red (reja)',
   },
 ];
 

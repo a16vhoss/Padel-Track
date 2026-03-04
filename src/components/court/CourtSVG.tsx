@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { FloorZoneId, FloorZoneMetadata, ZoneDestination, WallZoneId } from '@/types/zones';
 import { ShotType } from '@/types/shot';
 import { FLOOR_ZONES, INTERMEDIATE_ZONE_LINES } from '@/lib/zones/zone-metadata';
+import { WALL_ZONES } from '@/lib/zones/wall-zones';
 import { getShotContextHint } from '@/lib/court/shotContext';
 import { FloorZone } from './FloorZone';
 import { IntermediateZone } from './IntermediateZone';
@@ -25,7 +27,7 @@ interface CourtSVGProps {
   shotType?: ShotType | null;
 }
 
-// Wall zone definitions for SVG rendering
+// Wall zone SVG definitions — wider walls with gap separation
 const WALL_SVG_ZONES: Array<{
   id: WallZoneId;
   label: string;
@@ -36,37 +38,73 @@ const WALL_SVG_ZONES: Array<{
   wall: 'fondo' | 'lateral_izq' | 'lateral_der';
   level: 'baja' | 'alta';
 }> = [
-  // Fondo baja (bottom wall, lower row) - 4 panels
-  { id: 'P1', label: 'P1', x: 0, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
-  { id: 'P2', label: 'P2', x: 100, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
-  { id: 'P3', label: 'P3', x: 200, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
-  { id: 'P4', label: 'P4', x: 300, y: 500, width: 100, height: 20, wall: 'fondo', level: 'baja' },
-  // Fondo alta (bottom wall, upper row) - 4 panels
-  { id: 'P5', label: 'P5', x: 0, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
-  { id: 'P6', label: 'P6', x: 100, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
-  { id: 'P7', label: 'P7', x: 200, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
-  { id: 'P8', label: 'P8', x: 300, y: 520, width: 100, height: 16, wall: 'fondo', level: 'alta' },
-  // Lateral izq baja (left wall) - 4 panels top to bottom
-  { id: 'P12', label: 'P12', x: -20, y: 0, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
-  { id: 'P11', label: 'P11', x: -20, y: 125, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
-  { id: 'P10', label: 'P10', x: -20, y: 250, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
-  { id: 'P9', label: 'P9', x: -20, y: 375, width: 20, height: 125, wall: 'lateral_izq', level: 'baja' },
-  // Lateral izq alta
-  { id: 'P16', label: 'P16', x: -36, y: 0, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
-  { id: 'P15', label: 'P15', x: -36, y: 125, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
-  { id: 'P14', label: 'P14', x: -36, y: 250, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
-  { id: 'P13', label: 'P13', x: -36, y: 375, width: 16, height: 125, wall: 'lateral_izq', level: 'alta' },
-  // Lateral der baja (right wall) - 4 panels top to bottom
-  { id: 'P20', label: 'P20', x: 400, y: 0, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
-  { id: 'P19', label: 'P19', x: 400, y: 125, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
-  { id: 'P18', label: 'P18', x: 400, y: 250, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
-  { id: 'P17', label: 'P17', x: 400, y: 375, width: 20, height: 125, wall: 'lateral_der', level: 'baja' },
-  // Lateral der alta
-  { id: 'P24', label: 'P24', x: 420, y: 0, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
-  { id: 'P23', label: 'P23', x: 420, y: 125, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
-  { id: 'P22', label: 'P22', x: 420, y: 250, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
-  { id: 'P21', label: 'P21', x: 420, y: 375, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
+  // Fondo baja (bottom wall, vidrio) — 30px tall, 4px gap from court (y=504)
+  { id: 'P1', label: 'P1', x: 0, y: 504, width: 100, height: 30, wall: 'fondo', level: 'baja' },
+  { id: 'P2', label: 'P2', x: 100, y: 504, width: 100, height: 30, wall: 'fondo', level: 'baja' },
+  { id: 'P3', label: 'P3', x: 200, y: 504, width: 100, height: 30, wall: 'fondo', level: 'baja' },
+  { id: 'P4', label: 'P4', x: 300, y: 504, width: 100, height: 30, wall: 'fondo', level: 'baja' },
+  // Fondo alta (bottom wall, reja) — 24px tall, directly after baja (y=534)
+  { id: 'P5', label: 'P5', x: 0, y: 534, width: 100, height: 24, wall: 'fondo', level: 'alta' },
+  { id: 'P6', label: 'P6', x: 100, y: 534, width: 100, height: 24, wall: 'fondo', level: 'alta' },
+  { id: 'P7', label: 'P7', x: 200, y: 534, width: 100, height: 24, wall: 'fondo', level: 'alta' },
+  { id: 'P8', label: 'P8', x: 300, y: 534, width: 100, height: 24, wall: 'fondo', level: 'alta' },
+  // Lateral izq baja (vidrio) — 30px wide, 4px gap (x=-34 to -4)
+  { id: 'P12', label: 'P12', x: -34, y: 0, width: 30, height: 125, wall: 'lateral_izq', level: 'baja' },
+  { id: 'P11', label: 'P11', x: -34, y: 125, width: 30, height: 125, wall: 'lateral_izq', level: 'baja' },
+  { id: 'P10', label: 'P10', x: -34, y: 250, width: 30, height: 125, wall: 'lateral_izq', level: 'baja' },
+  { id: 'P9', label: 'P9', x: -34, y: 375, width: 30, height: 125, wall: 'lateral_izq', level: 'baja' },
+  // Lateral izq alta (reja) — 24px wide, directly after baja (x=-58 to -34)
+  { id: 'P16', label: 'P16', x: -58, y: 0, width: 24, height: 125, wall: 'lateral_izq', level: 'alta' },
+  { id: 'P15', label: 'P15', x: -58, y: 125, width: 24, height: 125, wall: 'lateral_izq', level: 'alta' },
+  { id: 'P14', label: 'P14', x: -58, y: 250, width: 24, height: 125, wall: 'lateral_izq', level: 'alta' },
+  { id: 'P13', label: 'P13', x: -58, y: 375, width: 24, height: 125, wall: 'lateral_izq', level: 'alta' },
+  // Lateral der baja (vidrio) — 30px wide (x=404 to 434)
+  { id: 'P20', label: 'P20', x: 404, y: 0, width: 30, height: 125, wall: 'lateral_der', level: 'baja' },
+  { id: 'P19', label: 'P19', x: 404, y: 125, width: 30, height: 125, wall: 'lateral_der', level: 'baja' },
+  { id: 'P18', label: 'P18', x: 404, y: 250, width: 30, height: 125, wall: 'lateral_der', level: 'baja' },
+  { id: 'P17', label: 'P17', x: 404, y: 375, width: 30, height: 125, wall: 'lateral_der', level: 'baja' },
+  // Lateral der alta (reja) — 24px wide (x=434 to 458)
+  { id: 'P24', label: 'P24', x: 434, y: 0, width: 24, height: 125, wall: 'lateral_der', level: 'alta' },
+  { id: 'P23', label: 'P23', x: 434, y: 125, width: 24, height: 125, wall: 'lateral_der', level: 'alta' },
+  { id: 'P22', label: 'P22', x: 434, y: 250, width: 24, height: 125, wall: 'lateral_der', level: 'alta' },
+  { id: 'P21', label: 'P21', x: 434, y: 375, width: 24, height: 125, wall: 'lateral_der', level: 'alta' },
 ];
+
+// Look up displayName from WALL_ZONES metadata
+const wallZoneDisplayMap = new Map(
+  WALL_ZONES.map((w) => [w.id, w.displayName ?? w.name])
+);
+
+/** Get team color for a wall based on court half */
+function getWallTeamColor(
+  wz: (typeof WALL_SVG_ZONES)[number],
+  playerTeam: 'team1' | 'team2' | undefined,
+  showFullCourt: boolean,
+): 'team1' | 'team2' | 'neutral' {
+  if (!showFullCourt || !playerTeam) return 'neutral';
+  // Fondo walls belong to the bottom half (team2 side in top half, etc.)
+  if (wz.wall === 'fondo') return 'team2';
+  // Lateral walls: bottom panels (y >= 250) = team2, top = team1
+  if (wz.y + wz.height / 2 >= 250) return 'team2';
+  return 'team1';
+}
+
+/** Bounce arrow path from wall center toward court interior */
+function getBounceArrowPath(wz: (typeof WALL_SVG_ZONES)[number], yOff: number): string {
+  const cx = wz.x + wz.width / 2;
+  const cy = wz.y + wz.height / 2 + yOff;
+
+  if (wz.wall === 'fondo') {
+    // Arrow going up from bottom wall
+    return `M ${cx} ${cy - 5} C ${cx} ${cy - 20}, ${cx + 10} ${cy - 30}, ${cx} ${cy - 40}`;
+  }
+  if (wz.wall === 'lateral_izq') {
+    // Arrow going right from left wall
+    return `M ${cx + 10} ${cy} C ${cx + 25} ${cy}, ${cx + 35} ${cy - 8}, ${cx + 45} ${cy}`;
+  }
+  // lateral_der — arrow going left from right wall
+  return `M ${cx - 10} ${cy} C ${cx - 25} ${cy}, ${cx - 35} ${cy - 8}, ${cx - 45} ${cy}`;
+}
 
 /** Offset zone points by dy. */
 function offsetZonePoints(zone: FloorZoneMetadata, dy: number): FloorZoneMetadata {
@@ -101,11 +139,8 @@ export function CourtSVG({
   teamNames,
   shotType,
 }: CourtSVGProps) {
-  // In full court: top = always team1, bottom = always team2.
-  // playerTeam determines which half is active (bright + clickeable).
-  // No player selected = both halves dimmed.
-  // If team1 player selected → ball lands on team2's side (bottom active)
-  // If team2 player selected → ball lands on team1's side (top active)
+  const [hoveredWall, setHoveredWall] = useState<WallZoneId | null>(null);
+
   const topActive = showFullCourt ? playerTeam === 'team2' : true;
   const bottomActive = showFullCourt ? playerTeam === 'team1' : false;
   const topDimmed = showFullCourt && !topActive;
@@ -127,31 +162,26 @@ export function CourtSVG({
 
   const hasWalls = showWalls && wallBounces && onWallToggle;
 
-  // In full court mode, offset walls to the active half.
-  // Top active: walls at original positions (laterals only, fondo overlaps net)
-  // Bottom active: all walls offset by MIRROR_OFFSET (fondo goes to y 1020+)
-  // No player: no walls shown
   const wallYOffset = showFullCourt
     ? (bottomActive ? MIRROR_OFFSET : 0)
     : 0;
   const wallZonesToRender = showFullCourt
     ? (bottomActive
-        ? WALL_SVG_ZONES // bottom: all walls (fondo at y 1020+ is fine)
-        : WALL_SVG_ZONES.filter((wz) => wz.wall !== 'fondo')) // top: no fondo (overlaps net)
+        ? WALL_SVG_ZONES
+        : WALL_SVG_ZONES.filter((wz) => wz.wall !== 'fondo'))
     : WALL_SVG_ZONES;
   const showWallZones = showFullCourt ? (topActive || bottomActive) : true;
 
-  // Compute viewBox
+  // Compute viewBox — wider to accommodate wider walls
   let viewBox: string;
   if (showFullCourt) {
-    const bottomWallExtra = bottomActive && hasWalls ? 40 : 0;
-    const totalHeight = MIRROR_OFFSET + 500 + bottomWallExtra; // 1020 + walls
-    viewBox = hasWalls ? `-40 0 480 ${totalHeight}` : `0 0 400 ${totalHeight}`;
+    const bottomWallExtra = bottomActive && hasWalls ? 62 : 0;
+    const totalHeight = MIRROR_OFFSET + 500 + bottomWallExtra;
+    viewBox = hasWalls ? `-62 0 524 ${totalHeight}` : `0 0 400 ${totalHeight}`;
   } else {
-    viewBox = hasWalls ? '-40 0 480 540' : '0 0 400 500';
+    viewBox = hasWalls ? '-62 0 524 564' : '0 0 400 500';
   }
 
-  // Labels: top = always team1, bottom = always team2
   const team1Name = teamNames?.team1 ?? 'Equipo 1';
   const team2Name = teamNames?.team2 ?? 'Equipo 2';
 
@@ -162,6 +192,62 @@ export function CourtSVG({
         className="w-full h-auto rounded-lg overflow-hidden"
         style={{ background: '#0f2e1a' }}
       >
+        {/* ===== SVG DEFS — patterns, gradients, filters ===== */}
+        <defs>
+          {/* Glass pattern — subtle diagonal lines */}
+          <pattern id="pattern-glass" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          </pattern>
+
+          {/* Mesh/reja pattern — open grid */}
+          <pattern id="pattern-mesh" patternUnits="userSpaceOnUse" width="6" height="6">
+            <rect width="6" height="6" fill="none" />
+            <rect x="0" y="0" width="3" height="3" fill="rgba(255,255,255,0.06)" />
+            <rect x="3" y="3" width="3" height="3" fill="rgba(255,255,255,0.06)" />
+          </pattern>
+
+          {/* Team color gradients for walls */}
+          <linearGradient id="wall-grad-team1-baja" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(34,197,94,0.25)" />
+            <stop offset="100%" stopColor="rgba(34,197,94,0.12)" />
+          </linearGradient>
+          <linearGradient id="wall-grad-team1-alta" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(34,197,94,0.15)" />
+            <stop offset="100%" stopColor="rgba(34,197,94,0.06)" />
+          </linearGradient>
+          <linearGradient id="wall-grad-team2-baja" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(59,130,246,0.25)" />
+            <stop offset="100%" stopColor="rgba(59,130,246,0.12)" />
+          </linearGradient>
+          <linearGradient id="wall-grad-team2-alta" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(59,130,246,0.15)" />
+            <stop offset="100%" stopColor="rgba(59,130,246,0.06)" />
+          </linearGradient>
+          <linearGradient id="wall-grad-neutral-baja" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(99,102,241,0.2)" />
+            <stop offset="100%" stopColor="rgba(99,102,241,0.08)" />
+          </linearGradient>
+          <linearGradient id="wall-grad-neutral-alta" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(99,102,241,0.12)" />
+            <stop offset="100%" stopColor="rgba(99,102,241,0.04)" />
+          </linearGradient>
+
+          {/* Glow filter for selected walls */}
+          <filter id="glow-wall" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="rgba(245,158,11,0.6)" />
+          </filter>
+
+          {/* Shadow filter for 3D depth */}
+          <filter id="wall-shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="1" dy="1" stdDeviation="2" floodColor="rgba(0,0,0,0.4)" />
+          </filter>
+
+          {/* Arrowhead marker */}
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0,0 8,3 0,6" fill="rgba(245,158,11,0.8)" />
+          </marker>
+        </defs>
+
         {/* ===== TOP HALF (always team1) ===== */}
 
         {/* Court base */}
@@ -308,54 +394,120 @@ export function CourtSVG({
           </>
         )}
 
-        {/* Wall zones integrated into SVG */}
+        {/* ===== WALL ZONES — redesigned ===== */}
         {hasWalls && showWallZones && (
           <>
-            {/* Wall labels */}
+            {/* Dark gap between court and walls (4px visual separation) */}
+            {/* Bottom gap */}
             {(!showFullCourt || bottomActive) && (
-              <text x="200" y={wallYOffset + 514} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1">
-                FONDO
-              </text>
+              <rect x="0" y={wallYOffset + 500} width="400" height="4" fill="rgba(0,0,0,0.6)" />
             )}
-            <text x="-28" y={wallYOffset + 250} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform={`rotate(-90, -28, ${wallYOffset + 250})`}>
-              LAT. IZQ
+            {/* Left gap */}
+            <rect x={-4} y={wallYOffset} width="4" height="500" fill="rgba(0,0,0,0.6)" />
+            {/* Right gap */}
+            <rect x="400" y={wallYOffset} width="4" height="500" fill="rgba(0,0,0,0.6)" />
+
+            {/* 3D highlight line — white edge on court side */}
+            {(!showFullCourt || bottomActive) && (
+              <line x1="0" y1={wallYOffset + 500} x2="400" y2={wallYOffset + 500} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            )}
+            <line x1="0" y1={wallYOffset} x2="0" y2={wallYOffset + 500} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+            <line x1="400" y1={wallYOffset} x2="400" y2={wallYOffset + 500} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+
+            {/* Dashed line separating baja/alta — fondo */}
+            {(!showFullCourt || bottomActive) && (
+              <line x1="0" y1={wallYOffset + 534} x2="400" y2={wallYOffset + 534} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4,3" />
+            )}
+            {/* Dashed line separating baja/alta — lateral izq */}
+            <line x1={-34} y1={wallYOffset} x2={-34} y2={wallYOffset + 500} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4,3" />
+            {/* Dashed line separating baja/alta — lateral der */}
+            <line x1="434" y1={wallYOffset} x2="434" y2={wallYOffset + 500} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4,3" />
+
+            {/* Wall section labels */}
+            {(!showFullCourt || bottomActive) && (
+              <>
+                <text x="200" y={wallYOffset + 518} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="8" fontWeight="bold" letterSpacing="2" pointerEvents="none">
+                  PARED FONDO
+                </text>
+                <text x="50" y={wallYOffset + 550} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="6" pointerEvents="none">
+                  VIDRIO
+                </text>
+                <text x="50" y={wallYOffset + 556} textAnchor="middle" fill="rgba(255,255,255,0.15)" fontSize="5" pointerEvents="none">
+                  ↑ baja | alta ↓
+                </text>
+              </>
+            )}
+            <text x={-46} y={wallYOffset + 250} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7" fontWeight="bold" letterSpacing="1" pointerEvents="none" transform={`rotate(-90, -46, ${wallYOffset + 250})`}>
+              PARED LAT. IZQ
             </text>
-            <text x="428" y={wallYOffset + 250} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform={`rotate(90, 428, ${wallYOffset + 250})`}>
-              LAT. DER
+            <text x="446" y={wallYOffset + 250} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7" fontWeight="bold" letterSpacing="1" pointerEvents="none" transform={`rotate(90, 446, ${wallYOffset + 250})`}>
+              PARED LAT. DER
             </text>
 
+            {/* Render each wall zone — 3 layers per zone */}
             {wallZonesToRender.map((wz) => {
               const isSelected = wallBounces!.includes(wz.id);
-              const fillColor = isSelected
-                ? 'rgba(245, 158, 11, 0.4)'
-                : wz.level === 'baja'
-                  ? 'rgba(139, 92, 246, 0.1)'
-                  : 'rgba(139, 92, 246, 0.05)';
-              const strokeColor = isSelected
-                ? 'rgba(245, 158, 11, 0.8)'
-                : 'rgba(139, 92, 246, 0.3)';
+              const isHovered = hoveredWall === wz.id;
+              const teamColor = getWallTeamColor(wz, playerTeam, showFullCourt);
+              const gradientId = `wall-grad-${teamColor}-${wz.level}`;
+              const patternId = wz.level === 'baja' ? 'pattern-glass' : 'pattern-mesh';
               const wy = wz.y + wallYOffset;
 
+              const idleBorderColor = wz.level === 'baja'
+                ? 'rgba(139, 92, 246, 0.4)'
+                : 'rgba(139, 92, 246, 0.25)';
+              const selectedBorderColor = 'rgba(245, 158, 11, 0.9)';
+              const borderColor = isSelected ? selectedBorderColor : idleBorderColor;
+
               return (
-                <g key={wz.id}>
+                <g
+                  key={wz.id}
+                  className={`wall-zone ${isSelected ? 'wall-zone-selected' : ''}`}
+                  filter={isSelected ? 'url(#glow-wall)' : 'url(#wall-shadow)'}
+                  onMouseEnter={() => setHoveredWall(wz.id)}
+                  onMouseLeave={() => setHoveredWall(null)}
+                  onClick={() => onWallToggle!(wz.id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {/* Layer 1: Team color gradient base */}
                   <rect
                     x={wz.x}
                     y={wy}
                     width={wz.width}
                     height={wz.height}
-                    fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth="1"
+                    fill={`url(#${gradientId})`}
                     rx="2"
-                    className="cursor-pointer"
-                    onClick={() => onWallToggle!(wz.id)}
                   />
+
+                  {/* Layer 2: Glass/mesh pattern overlay */}
+                  <rect
+                    x={wz.x}
+                    y={wy}
+                    width={wz.width}
+                    height={wz.height}
+                    fill={`url(#${patternId})`}
+                    rx="2"
+                  />
+
+                  {/* Layer 3: Border */}
+                  <rect
+                    x={wz.x}
+                    y={wy}
+                    width={wz.width}
+                    height={wz.height}
+                    fill="none"
+                    stroke={borderColor}
+                    strokeWidth={isSelected ? 2 : 1}
+                    rx="2"
+                  />
+
+                  {/* Zone label */}
                   <text
                     x={wz.x + wz.width / 2}
                     y={wy + wz.height / 2 + 3}
                     textAnchor="middle"
-                    fill={isSelected ? 'rgba(245, 158, 11, 0.9)' : 'rgba(255,255,255,0.25)'}
-                    fontSize="7"
+                    fill={isSelected ? 'rgba(245, 158, 11, 0.95)' : isHovered ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)'}
+                    fontSize={wz.level === 'baja' ? '8' : '7'}
                     fontWeight={isSelected ? 'bold' : 'normal'}
                     pointerEvents="none"
                   >
@@ -364,6 +516,78 @@ export function CourtSVG({
                 </g>
               );
             })}
+
+            {/* Bounce arrows for selected walls */}
+            {wallZonesToRender.map((wz) => {
+              if (!wallBounces!.includes(wz.id)) return null;
+              const arrowPath = getBounceArrowPath(wz, wallYOffset);
+              return (
+                <path
+                  key={`arrow-${wz.id}`}
+                  d={arrowPath}
+                  fill="none"
+                  stroke="rgba(245,158,11,0.7)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  markerEnd="url(#arrowhead)"
+                  className="bounce-arrow"
+                  pointerEvents="none"
+                />
+              );
+            })}
+
+            {/* Tooltip for hovered wall */}
+            {hoveredWall && (() => {
+              const wz = wallZonesToRender.find((w) => w.id === hoveredWall);
+              if (!wz) return null;
+              const displayName = wallZoneDisplayMap.get(wz.id) ?? wz.id;
+              const wy = wz.y + wallYOffset;
+
+              // Position tooltip near the wall zone
+              let tx = wz.x + wz.width / 2;
+              let ty = wy - 14;
+
+              // Adjust for lateral walls
+              if (wz.wall === 'lateral_izq') {
+                tx = wz.x + wz.width + 8;
+                ty = wy + wz.height / 2;
+              } else if (wz.wall === 'lateral_der') {
+                tx = wz.x - 8;
+                ty = wy + wz.height / 2;
+              }
+
+              const textLen = displayName.length * 5.2 + 12;
+              const rectX = wz.wall === 'lateral_der'
+                ? tx - textLen
+                : wz.wall === 'lateral_izq'
+                  ? tx
+                  : tx - textLen / 2;
+
+              return (
+                <g className="wall-tooltip" pointerEvents="none">
+                  <rect
+                    x={rectX}
+                    y={ty - 10}
+                    width={textLen}
+                    height="16"
+                    rx="3"
+                    fill="rgba(0,0,0,0.85)"
+                    stroke="rgba(245,158,11,0.4)"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={rectX + textLen / 2}
+                    y={ty + 1}
+                    textAnchor="middle"
+                    fill="rgba(245,158,11,0.95)"
+                    fontSize="7"
+                    fontWeight="600"
+                  >
+                    {displayName}
+                  </text>
+                </g>
+              );
+            })()}
           </>
         )}
 
@@ -441,10 +665,16 @@ export function CourtSVG({
             Defensa
           </span>
           {hasWalls && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-sm bg-purple-600/60" />
-              Pared
-            </span>
+            <>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm" style={{ background: 'rgba(99,102,241,0.5)', backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.15) 2px, rgba(255,255,255,0.15) 3px)' }} />
+                Vidrio
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm" style={{ background: 'rgba(99,102,241,0.3)', backgroundImage: 'repeating-conic-gradient(rgba(255,255,255,0.1) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px' }} />
+                Reja
+              </span>
+            </>
           )}
         </div>
       )}

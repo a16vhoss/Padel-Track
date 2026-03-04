@@ -41,6 +41,7 @@ export interface WallZoneMetadata {
   height: 'baja' | 'alta';
   wall: 'fondo' | 'lateral_izq' | 'lateral_der';
   connectedFloorZones: FloorZoneId[];
+  displayName?: string;
 }
 
 // Intermediate zone line for SVG rendering
