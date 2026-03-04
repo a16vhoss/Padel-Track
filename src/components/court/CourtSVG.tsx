@@ -126,14 +126,26 @@ export function CourtSVG({
   };
 
   const hasWalls = showWalls && wallBounces && onWallToggle;
+
+  // In full court mode, offset walls to the active half.
+  // Top active: walls at original positions (laterals only, fondo overlaps net)
+  // Bottom active: all walls offset by MIRROR_OFFSET (fondo goes to y 1020+)
+  // No player: no walls shown
+  const wallYOffset = showFullCourt
+    ? (bottomActive ? MIRROR_OFFSET : 0)
+    : 0;
   const wallZonesToRender = showFullCourt
-    ? WALL_SVG_ZONES.filter((wz) => wz.wall !== 'fondo')
+    ? (bottomActive
+        ? WALL_SVG_ZONES // bottom: all walls (fondo at y 1020+ is fine)
+        : WALL_SVG_ZONES.filter((wz) => wz.wall !== 'fondo')) // top: no fondo (overlaps net)
     : WALL_SVG_ZONES;
+  const showWallZones = showFullCourt ? (topActive || bottomActive) : true;
 
   // Compute viewBox
   let viewBox: string;
   if (showFullCourt) {
-    const totalHeight = MIRROR_OFFSET + 500; // 1020
+    const bottomWallExtra = bottomActive && hasWalls ? 40 : 0;
+    const totalHeight = MIRROR_OFFSET + 500 + bottomWallExtra; // 1020 + walls
     viewBox = hasWalls ? `-40 0 480 ${totalHeight}` : `0 0 400 ${totalHeight}`;
   } else {
     viewBox = hasWalls ? '-40 0 480 540' : '0 0 400 500';
@@ -297,18 +309,18 @@ export function CourtSVG({
         )}
 
         {/* Wall zones integrated into SVG */}
-        {hasWalls && (
+        {hasWalls && showWallZones && (
           <>
             {/* Wall labels */}
-            {!showFullCourt && (
-              <text x="200" y="514" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1">
+            {(!showFullCourt || bottomActive) && (
+              <text x="200" y={wallYOffset + 514} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1">
                 FONDO
               </text>
             )}
-            <text x="-28" y="250" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform="rotate(-90, -28, 250)">
+            <text x="-28" y={wallYOffset + 250} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform={`rotate(-90, -28, ${wallYOffset + 250})`}>
               LAT. IZQ
             </text>
-            <text x="428" y="250" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform="rotate(90, 428, 250)">
+            <text x="428" y={wallYOffset + 250} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform={`rotate(90, 428, ${wallYOffset + 250})`}>
               LAT. DER
             </text>
 
@@ -322,12 +334,13 @@ export function CourtSVG({
               const strokeColor = isSelected
                 ? 'rgba(245, 158, 11, 0.8)'
                 : 'rgba(139, 92, 246, 0.3)';
+              const wy = wz.y + wallYOffset;
 
               return (
                 <g key={wz.id}>
                   <rect
                     x={wz.x}
-                    y={wz.y}
+                    y={wy}
                     width={wz.width}
                     height={wz.height}
                     fill={fillColor}
@@ -339,7 +352,7 @@ export function CourtSVG({
                   />
                   <text
                     x={wz.x + wz.width / 2}
-                    y={wz.y + wz.height / 2 + 3}
+                    y={wy + wz.height / 2 + 3}
                     textAnchor="middle"
                     fill={isSelected ? 'rgba(245, 158, 11, 0.9)' : 'rgba(255,255,255,0.25)'}
                     fontSize="7"
