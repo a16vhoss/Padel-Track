@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/Button';
@@ -23,10 +23,68 @@ export function MatchSetup() {
   const [team2Name, setTeam2Name] = useState('');
   const [goldenPoint, setGoldenPoint] = useState(true);
   const [selectedLeagueId, setSelectedLeagueId] = useState('');
+  const [selectedTeam1Id, setSelectedTeam1Id] = useState('');
+  const [selectedTeam2Id, setSelectedTeam2Id] = useState('');
 
   useEffect(() => {
     loadLeagues();
   }, [loadLeagues]);
+
+  const activeLeagues = useMemo(
+    () => leagues.filter((l) => l.status === 'active'),
+    [leagues]
+  );
+
+  const selectedLeague = useMemo(
+    () => activeLeagues.find((l) => l.id === selectedLeagueId),
+    [activeLeagues, selectedLeagueId]
+  );
+
+  const leagueMode = !!selectedLeague;
+
+  // When league changes, reset team selections
+  const handleLeagueChange = (leagueId: string) => {
+    setSelectedLeagueId(leagueId);
+    setSelectedTeam1Id('');
+    setSelectedTeam2Id('');
+    setPlayers({ J1: '', J2: '', J3: '', J4: '' });
+    setTeam1Name('');
+    setTeam2Name('');
+  };
+
+  // When team 1 is selected from league, fill players
+  const handleTeam1Change = (teamId: string) => {
+    setSelectedTeam1Id(teamId);
+    if (!selectedLeague || !teamId) {
+      setPlayers((p) => ({ ...p, J1: '', J2: '' }));
+      setTeam1Name('');
+      return;
+    }
+    const team = selectedLeague.teams.find((t) => t.id === teamId);
+    if (team) {
+      setPlayers((p) => ({ ...p, J1: team.players[0].name, J2: team.players[1].name }));
+      setTeam1Name(team.name);
+    }
+  };
+
+  // When team 2 is selected from league, fill players
+  const handleTeam2Change = (teamId: string) => {
+    setSelectedTeam2Id(teamId);
+    if (!selectedLeague || !teamId) {
+      setPlayers((p) => ({ ...p, J3: '', J4: '' }));
+      setTeam2Name('');
+      return;
+    }
+    const team = selectedLeague.teams.find((t) => t.id === teamId);
+    if (team) {
+      setPlayers((p) => ({ ...p, J3: team.players[0].name, J4: team.players[1].name }));
+      setTeam2Name(team.name);
+    }
+  };
+
+  // Filter out already-selected team from the other dropdown
+  const team1Options = selectedLeague?.teams.filter((t) => t.id !== selectedTeam2Id) || [];
+  const team2Options = selectedLeague?.teams.filter((t) => t.id !== selectedTeam1Id) || [];
 
   const getShortName = (name: string): string => {
     if (!name) return '';
@@ -95,100 +153,189 @@ export function MatchSetup() {
   };
 
   const canCreate = players.J1 && players.J2 && players.J3 && players.J4;
+  const needsDifferentTeams = leagueMode && selectedTeam1Id && selectedTeam1Id === selectedTeam2Id;
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Nuevo Partido</h1>
       <p className="text-sm text-muted">
-        Configura los 2 equipos de 2 jugadores. J1 y J2 forman el Equipo 1, J3 y J4 el Equipo 2.
-        Los jugadores impares (J1, J3) juegan por la derecha y los pares (J2, J4) por la izquierda.
+        {leagueMode
+          ? 'Selecciona los 2 equipos de la liga para este partido.'
+          : 'Configura los 2 equipos de 2 jugadores. J1 y J2 forman el Equipo 1, J3 y J4 el Equipo 2.'}
       </p>
 
-      {/* Team 1 */}
-      <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-3 h-3 rounded-full bg-team1" />
-          <h2 className="font-semibold">Equipo 1</h2>
-        </div>
-        <input
-          placeholder="Nombre del equipo (opcional)"
-          value={team1Name}
-          onChange={(e) => setTeam1Name(e.target.value)}
-          className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-muted block mb-1">J1 - Derecha</label>
-            <input
-              placeholder="Nombre jugador 1"
-              value={players.J1}
-              onChange={(e) => setPlayers({ ...players, J1: e.target.value })}
-              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-muted block mb-1">J2 - Izquierda</label>
-            <input
-              placeholder="Nombre jugador 2"
-              value={players.J2}
-              onChange={(e) => setPlayers({ ...players, J2: e.target.value })}
-              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Team 2 */}
-      <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-3 h-3 rounded-full bg-secondary" />
-          <h2 className="font-semibold">Equipo 2</h2>
-        </div>
-        <input
-          placeholder="Nombre del equipo (opcional)"
-          value={team2Name}
-          onChange={(e) => setTeam2Name(e.target.value)}
-          className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-muted block mb-1">J3 - Derecha</label>
-            <input
-              placeholder="Nombre jugador 3"
-              value={players.J3}
-              onChange={(e) => setPlayers({ ...players, J3: e.target.value })}
-              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-muted block mb-1">J4 - Izquierda</label>
-            <input
-              placeholder="Nombre jugador 4"
-              value={players.J4}
-              onChange={(e) => setPlayers({ ...players, J4: e.target.value })}
-              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Liga */}
-      {leagues.filter((l) => l.status === 'active').length > 0 && (
+      {/* Liga selector - always show if there are active leagues */}
+      {activeLeagues.length > 0 && (
         <Card>
           <h2 className="font-semibold mb-3">Liga (opcional)</h2>
           <select
             value={selectedLeagueId}
-            onChange={(e) => setSelectedLeagueId(e.target.value)}
+            onChange={(e) => handleLeagueChange(e.target.value)}
             className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="">Sin liga</option>
-            {leagues
-              .filter((l) => l.status === 'active')
-              .map((l) => (
-                <option key={l.id} value={l.id}>{l.name}</option>
-              ))}
+            <option value="">Sin liga - modo manual</option>
+            {activeLeagues.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name} ({l.teams.length} equipos)
+              </option>
+            ))}
           </select>
+          {selectedLeague && selectedLeague.teams.length < 2 && (
+            <p className="text-xs text-accent mt-2">
+              Esta liga necesita al menos 2 equipos. Agrega equipos desde la pagina de Ligas.
+            </p>
+          )}
         </Card>
+      )}
+
+      {/* LEAGUE MODE: Team selectors */}
+      {leagueMode && selectedLeague && selectedLeague.teams.length >= 2 && (
+        <>
+          {/* Team 1 selector */}
+          <Card>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-3 h-3 rounded-full bg-team1" />
+              <h2 className="font-semibold">Equipo 1</h2>
+            </div>
+            <select
+              value={selectedTeam1Id}
+              onChange={(e) => handleTeam1Change(e.target.value)}
+              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Seleccionar equipo...</option>
+              {team1Options.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} ({t.players[0].name} / {t.players[1].name})
+                </option>
+              ))}
+            </select>
+            {selectedTeam1Id && (
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted block mb-1">J1 - Derecha</label>
+                  <div className="w-full bg-background/50 border border-border/50 rounded-md px-3 py-2 text-sm text-muted">
+                    {players.J1}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-muted block mb-1">J2 - Izquierda</label>
+                  <div className="w-full bg-background/50 border border-border/50 rounded-md px-3 py-2 text-sm text-muted">
+                    {players.J2}
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* Team 2 selector */}
+          <Card>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-3 h-3 rounded-full bg-secondary" />
+              <h2 className="font-semibold">Equipo 2</h2>
+            </div>
+            <select
+              value={selectedTeam2Id}
+              onChange={(e) => handleTeam2Change(e.target.value)}
+              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Seleccionar equipo...</option>
+              {team2Options.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} ({t.players[0].name} / {t.players[1].name})
+                </option>
+              ))}
+            </select>
+            {selectedTeam2Id && (
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted block mb-1">J3 - Derecha</label>
+                  <div className="w-full bg-background/50 border border-border/50 rounded-md px-3 py-2 text-sm text-muted">
+                    {players.J3}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-muted block mb-1">J4 - Izquierda</label>
+                  <div className="w-full bg-background/50 border border-border/50 rounded-md px-3 py-2 text-sm text-muted">
+                    {players.J4}
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+        </>
+      )}
+
+      {/* MANUAL MODE: Free-form inputs */}
+      {!leagueMode && (
+        <>
+          {/* Team 1 */}
+          <Card>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-3 h-3 rounded-full bg-team1" />
+              <h2 className="font-semibold">Equipo 1</h2>
+            </div>
+            <input
+              placeholder="Nombre del equipo (opcional)"
+              value={team1Name}
+              onChange={(e) => setTeam1Name(e.target.value)}
+              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted block mb-1">J1 - Derecha</label>
+                <input
+                  placeholder="Nombre jugador 1"
+                  value={players.J1}
+                  onChange={(e) => setPlayers({ ...players, J1: e.target.value })}
+                  className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted block mb-1">J2 - Izquierda</label>
+                <input
+                  placeholder="Nombre jugador 2"
+                  value={players.J2}
+                  onChange={(e) => setPlayers({ ...players, J2: e.target.value })}
+                  className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+          </Card>
+
+          {/* Team 2 */}
+          <Card>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-3 h-3 rounded-full bg-secondary" />
+              <h2 className="font-semibold">Equipo 2</h2>
+            </div>
+            <input
+              placeholder="Nombre del equipo (opcional)"
+              value={team2Name}
+              onChange={(e) => setTeam2Name(e.target.value)}
+              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted block mb-1">J3 - Derecha</label>
+                <input
+                  placeholder="Nombre jugador 3"
+                  value={players.J3}
+                  onChange={(e) => setPlayers({ ...players, J3: e.target.value })}
+                  className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted block mb-1">J4 - Izquierda</label>
+                <input
+                  placeholder="Nombre jugador 4"
+                  value={players.J4}
+                  onChange={(e) => setPlayers({ ...players, J4: e.target.value })}
+                  className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+          </Card>
+        </>
       )}
 
       {/* Config */}
@@ -211,7 +358,7 @@ export function MatchSetup() {
       <Button
         size="lg"
         className="w-full"
-        disabled={!canCreate}
+        disabled={!canCreate || !!needsDifferentTeams}
         onClick={handleCreate}
       >
         Crear Partido
