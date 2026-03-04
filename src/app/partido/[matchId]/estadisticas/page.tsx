@@ -23,6 +23,8 @@ import { computeWallStats } from '@/lib/stats/wallStats';
 import { computeRallyStats } from '@/lib/stats/rallyStats';
 import { generateTacticalRecommendations, generateMatchNarrative } from '@/lib/ai/tacticalAnalysis';
 import { useMemo } from 'react';
+import Link from 'next/link';
+import { Card } from '@/components/ui/Card';
 
 export default function EstadisticasPage() {
   const params = useParams();
@@ -139,6 +141,32 @@ export default function EstadisticasPage() {
           narrative={narrative}
         />
       )}
+
+      {/* Navigation to Scouting & Training */}
+      <Card>
+        <h3 className="text-sm font-semibold mb-3">Analisis por jugador</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {match.teams.flatMap((team) =>
+            team.players.map((player) => (
+              <Link
+                key={player.id}
+                href={`/scouting?player=${player.id}`}
+                className="text-xs bg-background border border-border rounded px-3 py-2 hover:border-primary transition-colors text-center"
+              >
+                Scouting de {player.name}
+              </Link>
+            ))
+          )}
+        </div>
+        <div className="mt-3">
+          <Link
+            href="/entrenamiento"
+            className="inline-block text-xs bg-primary text-black rounded px-3 py-2 font-medium hover:bg-primary-hover transition-colors"
+          >
+            Plan de Entrenamiento
+          </Link>
+        </div>
+      </Card>
     </div>
   );
 }

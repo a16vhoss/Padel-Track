@@ -91,4 +91,5 @@ export interface Match {
   totalDurationMs?: number; // total match duration
   startedAt?: number; // when the match actually started (first point)
   finishedAt?: number; // when the match ended
+  leagueId?: string; // linked league id
 }

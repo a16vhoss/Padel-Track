@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/Button';
@@ -8,9 +8,11 @@ import { Card } from '@/components/ui/Card';
 import { Match, Player, Team, MatchConfig } from '@/types/match';
 import { PlayerId } from '@/types/shot';
 import { saveMatch } from '@/lib/persistence/storage';
+import { useLeagueStore } from '@/stores/leagueStore';
 
 export function MatchSetup() {
   const router = useRouter();
+  const { leagues, loadAll: loadLeagues, addMatchToLeague } = useLeagueStore();
   const [players, setPlayers] = useState<Record<PlayerId, string>>({
     J1: '',
     J2: '',
@@ -20,6 +22,11 @@ export function MatchSetup() {
   const [team1Name, setTeam1Name] = useState('');
   const [team2Name, setTeam2Name] = useState('');
   const [goldenPoint, setGoldenPoint] = useState(true);
+  const [selectedLeagueId, setSelectedLeagueId] = useState('');
+
+  useEffect(() => {
+    loadLeagues();
+  }, [loadLeagues]);
 
   const getShortName = (name: string): string => {
     if (!name) return '';
@@ -77,9 +84,13 @@ export function MatchSetup() {
       winner: null,
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      ...(selectedLeagueId ? { leagueId: selectedLeagueId } : {}),
     };
 
     saveMatch(match);
+    if (selectedLeagueId) {
+      addMatchToLeague(selectedLeagueId, match.id);
+    }
     router.push(`/partido/${match.id}/registro`);
   };
 
@@ -160,6 +171,25 @@ export function MatchSetup() {
           </div>
         </div>
       </Card>
+
+      {/* Liga */}
+      {leagues.filter((l) => l.status === 'active').length > 0 && (
+        <Card>
+          <h2 className="font-semibold mb-3">Liga (opcional)</h2>
+          <select
+            value={selectedLeagueId}
+            onChange={(e) => setSelectedLeagueId(e.target.value)}
+            className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Sin liga</option>
+            {leagues
+              .filter((l) => l.status === 'active')
+              .map((l) => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+          </select>
+        </Card>
+      )}
 
       {/* Config */}
       <Card>

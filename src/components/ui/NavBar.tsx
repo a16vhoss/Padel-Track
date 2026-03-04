@@ -64,6 +64,24 @@ function DumbbellIcon({ className = '' }: { className?: string }) {
   );
 }
 
+function SearchIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function EyeIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
 function MenuIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -85,10 +103,10 @@ function CloseIcon() {
 
 const navLinks = [
   { href: '/', label: 'Partidos', shortLabel: 'Partidos', Icon: HomeIcon },
-  { href: '/estadisticas', label: 'Estadisticas', shortLabel: 'Stats', Icon: ChartIcon },
-  { href: '/jugadores', label: 'Jugadores', shortLabel: 'Jugadores', Icon: UsersIcon },
   { href: '/ligas', label: 'Ligas', shortLabel: 'Ligas', Icon: TrophyIcon },
   { href: '/entrenamiento', label: 'Entreno', shortLabel: 'Entreno', Icon: DumbbellIcon },
+  { href: '/scouting', label: 'Scouting', shortLabel: 'Scouting', Icon: SearchIcon },
+  { href: '/espectador', label: 'Espectador', shortLabel: 'Live', Icon: EyeIcon },
 ];
 
 export function NavBar() {

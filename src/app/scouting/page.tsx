@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useHistoryStore } from '@/stores/historyStore';
 import { ScoutingReportCard } from '@/components/scouting/ScoutingReportCard';
 import { Card } from '@/components/ui/Card';
@@ -9,12 +9,31 @@ import { generateScoutingReport } from '@/lib/scouting/scoutingReport';
 import type { ScoutingReport } from '@/types/scouting';
 import type { PlayerId } from '@/types/shot';
 
-const PLAYER_IDS: PlayerId[] = ['J1', 'J2', 'J3', 'J4'];
-
 export default function ScoutingPage() {
-  const { matches } = useHistoryStore();
+  const { matches, loadAll } = useHistoryStore();
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerId>('J1');
   const [report, setReport] = useState<ScoutingReport | null>(null);
+
+  useEffect(() => {
+    loadAll();
+  }, [loadAll]);
+
+  // Build unique player map from match history: PlayerId -> real name
+  const playerMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const match of matches) {
+      for (const team of match.teams) {
+        for (const player of team.players) {
+          if (player.name && player.name !== player.id) {
+            map[player.id] = player.name;
+          } else if (!map[player.id]) {
+            map[player.id] = player.id;
+          }
+        }
+      }
+    }
+    return map;
+  }, [matches]);
 
   const handleGenerate = () => {
     if (matches.length === 0) return;
@@ -34,8 +53,10 @@ export default function ScoutingPage() {
             onChange={(e) => setSelectedPlayer(e.target.value as PlayerId)}
             className="bg-background border border-border rounded px-3 py-2 text-sm"
           >
-            {PLAYER_IDS.map((p) => (
-              <option key={p} value={p}>{p}</option>
+            {(['J1', 'J2', 'J3', 'J4'] as PlayerId[]).map((p) => (
+              <option key={p} value={p}>
+                {playerMap[p] ? `${p} - ${playerMap[p]}` : p}
+              </option>
             ))}
           </select>
           <Button onClick={handleGenerate} disabled={matches.length === 0}>

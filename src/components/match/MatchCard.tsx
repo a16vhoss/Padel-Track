@@ -42,8 +42,12 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
     }
   };
 
+  const href = match.status === 'finished'
+    ? `/partido/${match.id}/estadisticas`
+    : `/partido/${match.id}/registro`;
+
   return (
-    <Link href={`/partido/${match.id}/registro`}>
+    <Link href={href}>
       <Card hover className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

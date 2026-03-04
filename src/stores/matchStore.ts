@@ -8,6 +8,7 @@ import { MatchScore } from '@/types/scoring';
 import { ScoringEngine, createScoringEngine } from '@/lib/scoring/engine';
 import { generatePointNotation } from '@/lib/notation/generator';
 import { saveMatch, getMatch } from '@/lib/persistence/storage';
+import { useLeagueStore } from '@/stores/leagueStore';
 
 interface MatchState {
   match: Match | null;
@@ -137,6 +138,14 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     if (matchOver) {
       updatedMatch.status = 'finished';
       updatedMatch.winner = team;
+      updatedMatch.finishedAt = Date.now();
+
+      // Auto-recalculate league standings
+      if (updatedMatch.leagueId) {
+        setTimeout(() => {
+          useLeagueStore.getState().recalculateStandings(updatedMatch.leagueId!);
+        }, 0);
+      }
     }
 
     updatedMatch.updatedAt = Date.now();

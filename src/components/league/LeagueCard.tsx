@@ -1,15 +1,18 @@
 'use client';
 
+import Link from 'next/link';
 import { League } from '@/types/league';
+import { Match } from '@/types/match';
 import { Card } from '@/components/ui/Card';
 
 interface LeagueCardProps {
   league: League;
+  matches?: Match[];
   onDelete?: () => void;
   onClick?: () => void;
 }
 
-export function LeagueCard({ league, onDelete, onClick }: LeagueCardProps) {
+export function LeagueCard({ league, matches = [], onDelete, onClick }: LeagueCardProps) {
   return (
     <Card>
       <div className="flex items-center justify-between mb-2 cursor-pointer" onClick={onClick}>
@@ -52,6 +55,29 @@ export function LeagueCard({ league, onDelete, onClick }: LeagueCardProps) {
               ))}
           </tbody>
         </table>
+      )}
+
+      {/* Linked matches */}
+      {matches.length > 0 && (
+        <div className="mt-3 border-t border-border/20 pt-2">
+          <h4 className="text-[10px] text-muted font-semibold mb-1">Partidos</h4>
+          <div className="space-y-1">
+            {matches.map((m) => (
+              <Link
+                key={m.id}
+                href={m.status === 'finished' ? `/partido/${m.id}/estadisticas` : `/partido/${m.id}/registro`}
+                className="flex items-center justify-between text-[11px] hover:bg-border/10 rounded px-1 py-0.5 transition-colors"
+              >
+                <span>
+                  {m.teams[0].name} vs {m.teams[1].name}
+                </span>
+                <span className={`text-[10px] ${m.status === 'finished' ? 'text-primary' : 'text-accent'}`}>
+                  {m.status === 'finished' ? 'Ver stats' : 'En vivo'}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
 
       {onDelete && (
