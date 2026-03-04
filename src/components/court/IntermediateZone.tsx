@@ -15,9 +15,8 @@ export function IntermediateZone({ zone, isSelected, onClick }: IntermediateZone
       y1={zone.y1}
       x2={zone.x2}
       y2={zone.y2}
-      className={`intermediate-zone ${isSelected ? 'selected' : ''}`}
-      stroke={isSelected ? 'rgba(245, 158, 11, 0.8)' : 'transparent'}
-      strokeWidth="8"
+      stroke={isSelected ? 'rgba(245, 158, 11, 0.85)' : 'transparent'}
+      strokeWidth={isSelected ? 10 : 8}
       strokeLinecap="round"
       onClick={onClick}
       style={{ cursor: 'pointer' }}
