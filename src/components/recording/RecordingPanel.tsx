@@ -55,7 +55,8 @@ export function RecordingPanel() {
         winningTeam = isTeam1Player ? 'team2' : 'team1';
       }
 
-      pointWon(winningTeam, shots);
+      const freshShots = usePointStore.getState().shots;
+      pointWon(winningTeam, freshShots);
       clearShots();
     }
 
