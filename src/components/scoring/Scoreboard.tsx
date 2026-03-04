@@ -1,7 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/Badge';
-
 interface ScoreboardProps {
   team1Name: string;
   team2Name: string;
@@ -21,53 +19,106 @@ export function Scoreboard({
   server,
   serveSide,
 }: ScoreboardProps) {
+  const isTeam1Serving = server === 'J1' || server === 'J2';
+
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-muted">Marcador</h3>
-        <div className="flex items-center gap-2">
-          <Badge variant="accent">Saque: {server}</Badge>
-          <Badge variant="muted">{serveSide === 'derecha' ? 'Der' : 'Izq'}</Badge>
+    <div className="scoreboard-broadcast rounded-xl overflow-hidden">
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 border-b border-white/5">
+        <span className="text-[10px] font-bold text-muted uppercase tracking-widest">En Vivo</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[9px] text-muted font-medium">
+            {serveSide === 'derecha' ? 'Deuce' : 'Ad'}
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 serve-indicator" />
         </div>
       </div>
 
-      <table className="w-full text-center">
-        <thead>
-          <tr className="text-xs text-muted">
-            <th className="text-left py-1">Equipo</th>
-            {sets.map((_, i) => (
-              <th key={i} className="py-1 w-12">S{i + 1}</th>
-            ))}
-            <th className="py-1 w-16">Game</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-t border-border">
-            <td className="text-left py-2 font-medium">
-              <span className="inline-block w-2 h-2 rounded-full bg-team1 mr-2" />
-              {team1Name}
-            </td>
-            {sets.map((s, i) => (
-              <td key={i} className="py-2 font-mono text-lg">{s.team1}</td>
-            ))}
-            <td className="py-2 font-mono text-lg font-bold text-primary">
-              {currentGame.team1}
-            </td>
-          </tr>
-          <tr className="border-t border-border">
-            <td className="text-left py-2 font-medium">
-              <span className="inline-block w-2 h-2 rounded-full bg-secondary mr-2" />
-              {team2Name}
-            </td>
-            {sets.map((s, i) => (
-              <td key={i} className="py-2 font-mono text-lg">{s.team2}</td>
-            ))}
-            <td className="py-2 font-mono text-lg font-bold text-secondary">
-              {currentGame.team2}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Team rows */}
+      <div className="divide-y divide-white/5">
+        {/* Team 1 */}
+        <div className={`flex items-center ${isTeam1Serving ? 'bg-team1/5' : ''}`}>
+          {/* Team color bar */}
+          <div className="w-1 self-stretch bg-team1" />
+
+          {/* Serve indicator */}
+          <div className="w-6 flex items-center justify-center flex-shrink-0">
+            {isTeam1Serving && (
+              <span className="w-2 h-2 rounded-full bg-team1 serve-indicator" />
+            )}
+          </div>
+
+          {/* Team name */}
+          <div className="flex-1 py-2.5 pr-2">
+            <span className="text-sm font-bold truncate block">{team1Name}</span>
+          </div>
+
+          {/* Set scores */}
+          {sets.map((s, i) => (
+            <div
+              key={i}
+              className={`w-9 py-2.5 text-center font-mono text-base font-bold border-l border-white/5 ${
+                s.team1 > s.team2 ? 'text-foreground' : 'text-muted'
+              }`}
+            >
+              {s.team1}
+            </div>
+          ))}
+
+          {/* Current game score */}
+          <div className="w-14 py-2.5 text-center font-mono text-xl font-black text-primary border-l-2 border-primary/30 bg-primary/5">
+            <span className="score-flip inline-block">{currentGame.team1}</span>
+          </div>
+        </div>
+
+        {/* Team 2 */}
+        <div className={`flex items-center ${!isTeam1Serving ? 'bg-secondary/5' : ''}`}>
+          {/* Team color bar */}
+          <div className="w-1 self-stretch bg-secondary" />
+
+          {/* Serve indicator */}
+          <div className="w-6 flex items-center justify-center flex-shrink-0">
+            {!isTeam1Serving && (
+              <span className="w-2 h-2 rounded-full bg-secondary serve-indicator" />
+            )}
+          </div>
+
+          {/* Team name */}
+          <div className="flex-1 py-2.5 pr-2">
+            <span className="text-sm font-bold truncate block">{team2Name}</span>
+          </div>
+
+          {/* Set scores */}
+          {sets.map((s, i) => (
+            <div
+              key={i}
+              className={`w-9 py-2.5 text-center font-mono text-base font-bold border-l border-white/5 ${
+                s.team2 > s.team1 ? 'text-foreground' : 'text-muted'
+              }`}
+            >
+              {s.team2}
+            </div>
+          ))}
+
+          {/* Current game score */}
+          <div className="w-14 py-2.5 text-center font-mono text-xl font-black text-secondary border-l-2 border-secondary/30 bg-secondary/5">
+            <span className="score-flip inline-block">{currentGame.team2}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Column headers */}
+      <div className="flex items-center px-0 py-1 bg-white/[0.02] border-t border-white/5">
+        <div className="w-1" />
+        <div className="w-6" />
+        <div className="flex-1 text-[9px] text-muted/60 font-medium pl-1">EQUIPO</div>
+        {sets.map((_, i) => (
+          <div key={i} className="w-9 text-center text-[9px] text-muted/60 font-medium">
+            S{i + 1}
+          </div>
+        ))}
+        <div className="w-14 text-center text-[9px] text-muted/60 font-bold">GAME</div>
+      </div>
     </div>
   );
 }

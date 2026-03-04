@@ -190,10 +190,32 @@ export function CourtSVG({
       <svg
         viewBox={viewBox}
         className="w-full h-auto rounded-lg overflow-hidden"
-        style={{ background: '#0f2e1a' }}
+        style={{ background: '#0a1f12' }}
       >
         {/* ===== SVG DEFS — patterns, gradients, filters ===== */}
         <defs>
+          {/* Court surface gradient - realistic synthetic grass */}
+          <linearGradient id="court-surface" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1a5c2e" />
+            <stop offset="50%" stopColor="#1e6b35" />
+            <stop offset="100%" stopColor="#185528" />
+          </linearGradient>
+
+          {/* Court surface texture — subtle grass-like lines */}
+          <pattern id="court-texture" patternUnits="userSpaceOnUse" width="4" height="8">
+            <line x1="2" y1="0" x2="2" y2="8" stroke="rgba(255,255,255,0.02)" strokeWidth="0.5" />
+          </pattern>
+
+          {/* Net mesh pattern — realistic diamond pattern */}
+          <pattern id="net-mesh" patternUnits="userSpaceOnUse" width="8" height="8">
+            <path d="M0,4 L4,0 L8,4 L4,8 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
+          </pattern>
+
+          {/* Court outer shadow for 3D depth */}
+          <filter id="court-depth" x="-5%" y="-2%" width="110%" height="104%">
+            <feDropShadow dx="0" dy="3" stdDeviation="6" floodColor="rgba(0,0,0,0.4)" />
+          </filter>
+
           {/* Glass pattern — subtle diagonal lines */}
           <pattern id="pattern-glass" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
@@ -250,8 +272,12 @@ export function CourtSVG({
 
         {/* ===== TOP HALF (always team1) ===== */}
 
-        {/* Court base */}
-        <rect x="0" y="0" width="400" height="500" fill="#163824" rx="8" />
+        {/* Court base with gradient */}
+        <rect x="0" y="0" width="400" height="500" fill="url(#court-surface)" rx="6" filter="url(#court-depth)" />
+        {/* Texture overlay */}
+        <rect x="0" y="0" width="400" height="500" fill="url(#court-texture)" rx="6" />
+        {/* Court border for depth */}
+        <rect x="0" y="0" width="400" height="500" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="2" rx="6" />
 
         {/* Row background tints */}
         <rect x="0" y="0" width="400" height="140" fill={topDimmed ? 'rgba(220, 38, 38, 0.02)' : 'rgba(220, 38, 38, 0.06)'} />
@@ -261,22 +287,29 @@ export function CourtSVG({
         {/* Net line (original position — only when NOT full court) */}
         {!showFullCourt && (
           <>
-            <line x1="0" y1="140" x2="400" y2="140" stroke="white" strokeWidth="3" opacity="0.5" />
+            <line x1="0" y1="140" x2="400" y2="140" stroke="white" strokeWidth="3" opacity="0.6" />
+            <line x1="0" y1="140" x2="400" y2="140" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="2,2" />
             <text x="200" y="136" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontWeight="bold" letterSpacing="2">
               RED
             </text>
           </>
         )}
 
-        {/* Grid lines - columns */}
-        <line x1="80" y1="0" x2="80" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
-        <line x1="140" y1="0" x2="140" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
-        <line x1="200" y1="0" x2="200" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)'} strokeWidth="1" strokeDasharray="4,4" />
-        <line x1="260" y1="0" x2="260" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
-        <line x1="320" y1="0" x2="320" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+        {/* Court boundary lines - thicker and more visible */}
+        <line x1="0" y1="0" x2="400" y2="0" stroke={topDimmed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'} strokeWidth="2.5" />
+        <line x1="0" y1="500" x2="400" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'} strokeWidth="2.5" />
+        <line x1="0" y1="0" x2="0" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'} strokeWidth="2.5" />
+        <line x1="400" y1="0" x2="400" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'} strokeWidth="2.5" />
 
-        {/* Grid lines - rows */}
-        <line x1="0" y1="315" x2="400" y2="315" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" />
+        {/* Grid lines - columns */}
+        <line x1="80" y1="0" x2="80" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" />
+        <line x1="140" y1="0" x2="140" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" />
+        <line x1="200" y1="0" x2="200" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.12)'} strokeWidth="1" strokeDasharray="6,4" />
+        <line x1="260" y1="0" x2="260" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" />
+        <line x1="320" y1="0" x2="320" y2="500" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" />
+
+        {/* Grid lines - rows (service line) */}
+        <line x1="0" y1="315" x2="400" y2="315" stroke={topDimmed ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" />
 
         {/* Team1 label (top) */}
         {showFullCourt && (
@@ -318,10 +351,16 @@ export function CourtSVG({
         {/* ===== NET SEPARATOR (full court only) ===== */}
         {showFullCourt && (
           <>
-            <rect x="0" y={NET_Y} width="400" height={NET_HEIGHT} fill="rgba(255,255,255,0.08)" />
-            <line x1="0" y1={NET_Y} x2="400" y2={NET_Y} stroke="white" strokeWidth="3" opacity="0.7" />
-            <line x1="0" y1={NET_Y + NET_HEIGHT} x2="400" y2={NET_Y + NET_HEIGHT} stroke="white" strokeWidth="3" opacity="0.7" />
-            <text x="200" y={NET_Y + 14} textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="12" fontWeight="bold" letterSpacing="4" pointerEvents="none">
+            {/* Net background with mesh pattern */}
+            <rect x="0" y={NET_Y} width="400" height={NET_HEIGHT} fill="rgba(180,180,180,0.12)" />
+            <rect x="0" y={NET_Y} width="400" height={NET_HEIGHT} fill="url(#net-mesh)" />
+            {/* Net cable lines */}
+            <line x1="0" y1={NET_Y} x2="400" y2={NET_Y} stroke="white" strokeWidth="3" opacity="0.8" />
+            <line x1="0" y1={NET_Y + NET_HEIGHT} x2="400" y2={NET_Y + NET_HEIGHT} stroke="white" strokeWidth="2" opacity="0.5" />
+            {/* Net post indicators */}
+            <rect x="-2" y={NET_Y - 4} width="6" height={NET_HEIGHT + 8} fill="rgba(255,255,255,0.3)" rx="2" />
+            <rect x="396" y={NET_Y - 4} width="6" height={NET_HEIGHT + 8} fill="rgba(255,255,255,0.3)" rx="2" />
+            <text x="200" y={NET_Y + 14} textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="11" fontWeight="bold" letterSpacing="6" pointerEvents="none">
               RED
             </text>
           </>
@@ -330,8 +369,10 @@ export function CourtSVG({
         {/* ===== BOTTOM HALF (always team2) ===== */}
         {showFullCourt && (
           <>
-            {/* Bottom court base */}
-            <rect x="0" y={MIRROR_OFFSET} width="400" height="500" fill="#163824" />
+            {/* Bottom court base with gradient */}
+            <rect x="0" y={MIRROR_OFFSET} width="400" height="500" fill="url(#court-surface)" />
+            <rect x="0" y={MIRROR_OFFSET} width="400" height="500" fill="url(#court-texture)" />
+            <rect x="0" y={MIRROR_OFFSET} width="400" height="500" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="2" />
 
             {/* Bottom row background tints */}
             <rect x="0" y={MIRROR_OFFSET} width="400" height="140" fill={bottomDimmed ? 'rgba(220, 38, 38, 0.02)' : 'rgba(220, 38, 38, 0.06)'} />

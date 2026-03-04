@@ -8,7 +8,7 @@ import { ThemeToggle } from './ThemeToggle';
 
 function HomeIcon({ className = '' }: { className?: string }) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="8" x2="12" y2="16" />
       <line x1="8" y1="12" x2="16" y2="12" />
@@ -18,7 +18,7 @@ function HomeIcon({ className = '' }: { className?: string }) {
 
 function ChartIcon({ className = '' }: { className?: string }) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="20" x2="18" y2="10" />
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="6" y1="20" x2="6" y2="14" />
@@ -28,7 +28,7 @@ function ChartIcon({ className = '' }: { className?: string }) {
 
 function UsersIcon({ className = '' }: { className?: string }) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -39,7 +39,7 @@ function UsersIcon({ className = '' }: { className?: string }) {
 
 function TrophyIcon({ className = '' }: { className?: string }) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
       <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
       <path d="M4 22h16" />
@@ -52,7 +52,7 @@ function TrophyIcon({ className = '' }: { className?: string }) {
 
 function DumbbellIcon({ className = '' }: { className?: string }) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m6.5 6.5 11 11" />
       <path d="m21 21-1-1" />
       <path d="m3 3 1 1" />
@@ -84,11 +84,11 @@ function CloseIcon() {
 }
 
 const navLinks = [
-  { href: '/', label: 'Partidos', Icon: HomeIcon },
-  { href: '/estadisticas', label: 'Estadísticas', Icon: ChartIcon },
-  { href: '/jugadores', label: 'Jugadores', Icon: UsersIcon },
-  { href: '/ligas', label: 'Ligas', Icon: TrophyIcon },
-  { href: '/entrenamiento', label: 'Entreno', Icon: DumbbellIcon },
+  { href: '/', label: 'Partidos', shortLabel: 'Partidos', Icon: HomeIcon },
+  { href: '/estadisticas', label: 'Estadisticas', shortLabel: 'Stats', Icon: ChartIcon },
+  { href: '/jugadores', label: 'Jugadores', shortLabel: 'Jugadores', Icon: UsersIcon },
+  { href: '/ligas', label: 'Ligas', shortLabel: 'Ligas', Icon: TrophyIcon },
+  { href: '/entrenamiento', label: 'Entreno', shortLabel: 'Entreno', Icon: DumbbellIcon },
 ];
 
 export function NavBar() {
@@ -100,82 +100,120 @@ export function NavBar() {
     return pathname.startsWith(href);
   };
 
+  // Hide bottom nav on recording pages
+  const hideBottomNav = pathname.includes('/registro');
+
   return (
-    <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="text-primary">TacticalPadel</span>
-          <span className="text-muted text-sm font-normal">AI</span>
-        </Link>
-
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`
-                flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors
-                ${isActive(href)
-                  ? 'text-primary bg-primary/10 font-medium'
-                  : 'text-muted hover:text-foreground hover:bg-card-hover'
-                }
-              `}
-            >
-              <Icon className="opacity-70" />
-              {label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="hidden md:flex items-center gap-3">
-          <ThemeToggle />
-          <Link href="/partido/nuevo">
-            <Button size="md">Nuevo Partido</Button>
+    <>
+      {/* Top header */}
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+        <nav className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+            <span className="text-primary font-black">Tactical</span>
+            <span className="text-muted text-sm font-normal">Padel</span>
           </Link>
-        </div>
 
-        {/* Mobile menu button */}
-        <div className="flex md:hidden items-center gap-2">
-          <ThemeToggle />
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-1.5 text-muted hover:text-foreground transition-colors"
-          >
-            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile dropdown */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card animate-fade-in-up">
-          <div className="px-4 py-3 space-y-1">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map(({ href, label, Icon }) => (
               <Link
                 key={href}
                 href={href}
-                onClick={() => setMobileOpen(false)}
                 className={`
-                  flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors
+                  flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200
                   ${isActive(href)
-                    ? 'text-primary bg-primary/10 font-medium'
+                    ? 'text-primary bg-primary/10 font-semibold'
                     : 'text-muted hover:text-foreground hover:bg-card-hover'
                   }
                 `}
               >
-                <Icon />
+                <Icon className={isActive(href) ? 'text-primary' : 'opacity-60'} />
                 {label}
               </Link>
             ))}
-            <div className="pt-2 border-t border-border">
-              <Link href="/partido/nuevo" onClick={() => setMobileOpen(false)}>
-                <Button size="md" className="w-full">Nuevo Partido</Button>
-              </Link>
+          </div>
+
+          <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/partido/nuevo">
+              <Button size="md" className="btn-press">Nuevo Partido</Button>
+            </Link>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-1.5 text-muted hover:text-foreground transition-colors"
+            >
+              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
+          </div>
+        </nav>
+
+        {/* Mobile dropdown */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-border bg-card animate-fade-in-up">
+            <div className="px-4 py-3 space-y-1">
+              {navLinks.map(({ href, label, Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
+                    ${isActive(href)
+                      ? 'text-primary bg-primary/10 font-semibold'
+                      : 'text-muted hover:text-foreground hover:bg-card-hover'
+                    }
+                  `}
+                >
+                  <Icon className={isActive(href) ? 'text-primary' : 'opacity-60'} />
+                  {label}
+                </Link>
+              ))}
+              <div className="pt-2 border-t border-border">
+                <Link href="/partido/nuevo" onClick={() => setMobileOpen(false)}>
+                  <Button size="md" className="w-full btn-press">Nuevo Partido</Button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+      </header>
+
+      {/* Mobile bottom navigation */}
+      {!hideBottomNav && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border pb-[env(safe-area-inset-bottom)]">
+          <div className="flex items-center justify-around px-2 py-1">
+            {navLinks.map(({ href, shortLabel, Icon }) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`
+                    relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 min-w-[56px]
+                    ${active
+                      ? 'text-primary'
+                      : 'text-muted active:scale-95'
+                    }
+                  `}
+                >
+                  {active && (
+                    <div className="absolute -top-1 w-8 h-1 bg-primary rounded-full nav-pill" />
+                  )}
+                  <Icon className={active ? 'text-primary' : ''} />
+                  <span className={`text-[10px] font-medium ${active ? 'font-bold' : ''}`}>
+                    {shortLabel}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       )}
-    </header>
+    </>
   );
 }
