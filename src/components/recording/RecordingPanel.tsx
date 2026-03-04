@@ -87,32 +87,56 @@ export function RecordingPanel() {
       />
 
       {/* Step 1: Player */}
-      <PlayerSelector
-        teams={match.teams}
-        selected={player}
-        onSelect={setPlayer}
-      />
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">Paso 1</span>
+          <span className="text-[11px] text-muted">Quien golpea</span>
+        </div>
+        <PlayerSelector
+          teams={match.teams}
+          selected={player}
+          onSelect={setPlayer}
+        />
+      </div>
 
       {/* Step 2: Shot type */}
-      <ShotTypeSelector
-        selected={shotType}
-        onSelect={setShotType}
-      />
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">Paso 2</span>
+          <span className="text-[11px] text-muted">Tipo de golpe</span>
+        </div>
+        <ShotTypeSelector
+          selected={shotType}
+          onSelect={setShotType}
+        />
+      </div>
 
       {/* Step 3: Modifiers */}
-      <ModifierSelector
-        direction={direction}
-        power={power}
-        spin={spin}
-        wallBounces={wallBounces}
-        onDirectionChange={setDirection}
-        onPowerChange={setPower}
-        onSpinChange={setSpin}
-        onWallToggle={(w: WallZoneId) => toggleWallBounce(w)}
-      />
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">Paso 3</span>
+          <span className="text-[11px] text-muted">Modificadores (opcional)</span>
+        </div>
+        <ModifierSelector
+          direction={direction}
+          power={power}
+          spin={spin}
+          wallBounces={wallBounces}
+          onDirectionChange={setDirection}
+          onPowerChange={setPower}
+          onSpinChange={setSpin}
+          onWallToggle={(w: WallZoneId) => toggleWallBounce(w)}
+        />
+      </div>
 
       {/* Step 4: Status */}
-      <StatusSelector selected={status} onSelect={setStatus} />
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">Paso 4</span>
+          <span className="text-[11px] text-muted">Resultado del golpe</span>
+        </div>
+        <StatusSelector selected={status} onSelect={setStatus} />
+      </div>
 
       {/* Actions */}
       <div className="flex gap-2">

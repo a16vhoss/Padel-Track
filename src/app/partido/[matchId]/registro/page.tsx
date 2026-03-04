@@ -7,6 +7,7 @@ import { RecordingPanel } from '@/components/recording/RecordingPanel';
 import { CourtSVG } from '@/components/court/CourtSVG';
 import { WallPanel } from '@/components/court/WallPanel';
 import { Scoreboard } from '@/components/scoring/Scoreboard';
+import { GuiaRegistro } from '@/components/ui/GuiaRegistro';
 
 export default function RegistroPage() {
   const params = useParams();
@@ -28,7 +29,9 @@ export default function RegistroPage() {
   }));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-4">
+      <GuiaRegistro />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Left: Court + Wall panel */}
       <div className="space-y-4">
         <CourtSVG
@@ -52,6 +55,7 @@ export default function RegistroPage() {
           serveSide={scoring.serveSide}
         />
         <RecordingPanel />
+      </div>
       </div>
     </div>
   );

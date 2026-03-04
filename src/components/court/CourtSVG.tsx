@@ -83,16 +83,23 @@ export function CourtSVG({
         {/* Labels */}
         {showLabels && (
           <>
-            <text x="200" y="70" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="16" fontWeight="bold">
+            <text x="200" y="70" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="18" fontWeight="bold">
               RED
             </text>
-            <text x="200" y="230" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="16" fontWeight="bold">
+            <text x="200" y="230" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="18" fontWeight="bold">
               MEDIA
             </text>
-            <text x="200" y="410" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="16" fontWeight="bold">
+            <text x="200" y="410" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="18" fontWeight="bold">
               FONDO
             </text>
           </>
+        )}
+
+        {/* Hint when no zone selected */}
+        {!selectedDestination && (
+          <text x="200" y="485" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="13">
+            Toca una zona donde cayo la pelota
+          </text>
         )}
       </svg>
 

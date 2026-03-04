@@ -88,6 +88,10 @@ export function MatchSetup() {
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Nuevo Partido</h1>
+      <p className="text-sm text-muted">
+        Configura los 2 equipos de 2 jugadores. J1 y J2 forman el Equipo 1, J3 y J4 el Equipo 2.
+        Los jugadores impares (J1, J3) juegan por la derecha y los pares (J2, J4) por la izquierda.
+      </p>
 
       {/* Team 1 */}
       <Card>
@@ -169,6 +173,9 @@ export function MatchSetup() {
           />
           Punto de oro (sin ventaja)
         </label>
+        <p className="text-[11px] text-muted mt-1 ml-6">
+          Con punto de oro, a 40-40 se juega un solo punto decisivo en vez de ventaja/deuce.
+        </p>
       </Card>
 
       <Button
