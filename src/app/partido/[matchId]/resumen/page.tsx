@@ -1,18 +1,19 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
 import { useMatch } from '@/hooks/useMatch';
 import { buildExportJSON } from '@/lib/export/json-builder';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { ShareMatch } from '@/components/match/ShareMatch';
+import { useToastStore } from '@/stores/toastStore';
 
 export default function ResumenPage() {
   const params = useParams();
   const matchId = params.matchId as string;
   const { match } = useMatch(matchId);
-  const [copied, setCopied] = useState(false);
+  const { addToast } = useToastStore();
 
   if (!match) {
     return <div className="text-center py-12 text-muted">Cargando...</div>;
@@ -23,8 +24,7 @@ export default function ResumenPage() {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(jsonStr);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    addToast('JSON copiado al portapapeles');
   };
 
   const handleDownload = () => {
@@ -35,6 +35,7 @@ export default function ResumenPage() {
     a.download = `partido_${match.id.slice(0, 8)}_${new Date(match.createdAt).toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    addToast('Archivo descargado');
   };
 
   const allPoints = match.sets.flatMap((s) => s.games.flatMap((g) => g.points));
@@ -78,12 +79,18 @@ export default function ResumenPage() {
         <div className="mt-3 text-sm text-muted">
           {allPoints.length} puntos registrados | {exportData.estadisticas.total_golpes} golpes totales
         </div>
+
+        {/* Share buttons */}
+        <div className="mt-4 pt-4 border-t border-border/50">
+          <h3 className="text-xs text-muted mb-2">Compartir</h3>
+          <ShareMatch match={match} />
+        </div>
       </Card>
 
       {/* Compact notation summary */}
       {allPoints.length > 0 && (
         <Card>
-          <h3 className="text-sm font-semibold mb-2">Notacion Compacta</h3>
+          <h3 className="text-sm font-semibold mb-2">Notación Compacta</h3>
           <div className="max-h-48 overflow-y-auto space-y-1">
             {allPoints.map((point) => (
               <div key={point.id} className="text-xs font-mono bg-background rounded p-1.5 border border-border">
@@ -108,7 +115,7 @@ export default function ResumenPage() {
           <h3 className="text-sm font-semibold">JSON Export v{exportData.version}</h3>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleCopy}>
-              {copied ? 'Copiado!' : 'Copiar'}
+              Copiar JSON
             </Button>
             <Button variant="primary" size="sm" onClick={handleDownload}>
               Descargar JSON
