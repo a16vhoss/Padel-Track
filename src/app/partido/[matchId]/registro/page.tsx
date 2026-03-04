@@ -55,6 +55,7 @@ export default function RegistroPage() {
           wallBounces={wallBounces}
           onWallToggle={toggleWallBounce}
           showWalls={!quickMode}
+          showFullCourt
           playerTeam={playerTeam}
           teamNames={teamNames}
           shotType={shotType}

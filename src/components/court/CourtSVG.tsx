@@ -19,6 +19,7 @@ interface CourtSVGProps {
   onWallToggle?: (w: WallZoneId) => void;
   showWalls?: boolean;
   // Full court orientation
+  showFullCourt?: boolean;
   playerTeam?: 'team1' | 'team2';
   teamNames?: { team1: string; team2: string };
   shotType?: ShotType | null;
@@ -96,11 +97,11 @@ export function CourtSVG({
   wallBounces,
   onWallToggle,
   showWalls = false,
+  showFullCourt = false,
   playerTeam,
   teamNames,
   shotType,
 }: CourtSVGProps) {
-  const showFullCourt = !!playerTeam;
 
   const isZoneSelected = (id: FloorZoneId) => {
     if (!selectedDestination) return false;
@@ -131,7 +132,7 @@ export function CourtSVG({
     viewBox = hasWalls ? '-40 0 480 540' : '0 0 400 500';
   }
 
-  // Team labels
+  // Team labels — when no player selected, show generic "Cancha rival" / "Tu cancha"
   const rivalLabel = playerTeam && teamNames
     ? (playerTeam === 'team1' ? teamNames.team2 : teamNames.team1)
     : null;
@@ -177,9 +178,9 @@ export function CourtSVG({
         <line x1="0" y1="315" x2="400" y2="315" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
 
         {/* Rival team label (top) */}
-        {showFullCourt && rivalLabel && (
+        {showFullCourt && (
           <text x="200" y="20" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="11" fontWeight="bold" pointerEvents="none" letterSpacing="1">
-            {`LADO DE ${rivalLabel.toUpperCase()}`}
+            {rivalLabel ? `LADO DE ${rivalLabel.toUpperCase()}` : 'CANCHA RIVAL'}
           </text>
         )}
 
@@ -260,11 +261,9 @@ export function CourtSVG({
             })}
 
             {/* Own team label (bottom) */}
-            {ownLabel && (
-              <text x="200" y={MIRROR_OFFSET + 490} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="11" fontWeight="bold" pointerEvents="none" letterSpacing="1">
-                {`TU LADO (${ownLabel.toUpperCase()})`}
-              </text>
-            )}
+            <text x="200" y={MIRROR_OFFSET + 490} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="11" fontWeight="bold" pointerEvents="none" letterSpacing="1">
+              {ownLabel ? `TU LADO (${ownLabel.toUpperCase()})` : 'TU CANCHA'}
+            </text>
           </>
         )}
 
