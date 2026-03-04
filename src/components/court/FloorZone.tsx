@@ -7,6 +7,7 @@ interface FloorZoneProps {
   isSelected: boolean;
   heatValue?: number; // 0-1 for heatmap
   onClick: () => void;
+  dimmed?: boolean;
 }
 
 const CATEGORY_FILLS: Record<ZoneCategory, string> = {
@@ -21,7 +22,7 @@ const CATEGORY_SELECTED: Record<ZoneCategory, string> = {
   fondo: 'rgba(37, 99, 235, 0.45)',
 };
 
-export function FloorZone({ zone, isSelected, heatValue, onClick }: FloorZoneProps) {
+export function FloorZone({ zone, isSelected, heatValue, onClick, dimmed }: FloorZoneProps) {
   let fill = CATEGORY_FILLS[zone.category];
 
   if (heatValue !== undefined && heatValue > 0) {
@@ -35,7 +36,12 @@ export function FloorZone({ zone, isSelected, heatValue, onClick }: FloorZonePro
   }
 
   return (
-    <g className="court-zone" onClick={onClick} style={{ cursor: 'pointer' }}>
+    <g
+      className="court-zone"
+      onClick={dimmed ? undefined : onClick}
+      style={{ cursor: dimmed ? 'default' : 'pointer', opacity: dimmed ? 0.25 : 1 }}
+      pointerEvents={dimmed ? 'none' : undefined}
+    >
       <polygon
         points={zone.points}
         fill={fill}

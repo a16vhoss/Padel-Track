@@ -3,11 +3,17 @@
 import { useParams } from 'next/navigation';
 import { useMatch } from '@/hooks/useMatch';
 import { useRecordingStore } from '@/stores/recordingStore';
+import { PlayerId } from '@/types/shot';
 import { RecordingPanel } from '@/components/recording/RecordingPanel';
 import { CourtSVG } from '@/components/court/CourtSVG';
 import { WallPanel } from '@/components/court/WallPanel';
 import { Scoreboard } from '@/components/scoring/Scoreboard';
 import { GuiaRegistro } from '@/components/ui/GuiaRegistro';
+
+function playerToTeam(player: PlayerId | null): 'team1' | 'team2' | undefined {
+  if (!player) return undefined;
+  return player === 'J1' || player === 'J2' ? 'team1' : 'team2';
+}
 
 export default function RegistroPage() {
   const params = useParams();
@@ -19,6 +25,8 @@ export default function RegistroPage() {
   const wallBounces = useRecordingStore((s) => s.wallBounces);
   const toggleWallBounce = useRecordingStore((s) => s.toggleWallBounce);
   const quickMode = useRecordingStore((s) => s.quickMode);
+  const player = useRecordingStore((s) => s.player);
+  const shotType = useRecordingStore((s) => s.shotType);
 
   if (!match || !scoring) {
     return <div className="text-center py-12 text-muted">Cargando...</div>;
@@ -28,6 +36,12 @@ export default function RegistroPage() {
     team1: s.score.team1,
     team2: s.score.team2,
   }));
+
+  const playerTeam = playerToTeam(player);
+  const teamNames = {
+    team1: match.teams[0].name,
+    team2: match.teams[1].name,
+  };
 
   return (
     <div className="space-y-4">
@@ -41,6 +55,9 @@ export default function RegistroPage() {
           wallBounces={wallBounces}
           onWallToggle={toggleWallBounce}
           showWalls={!quickMode}
+          playerTeam={playerTeam}
+          teamNames={teamNames}
+          shotType={shotType}
         />
         {/* Fallback WallPanel for quick mode or small screens */}
         {quickMode && (

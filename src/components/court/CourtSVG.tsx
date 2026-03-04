@@ -1,7 +1,9 @@
 'use client';
 
-import { FloorZoneId, ZoneDestination, WallZoneId } from '@/types/zones';
+import { FloorZoneId, FloorZoneMetadata, ZoneDestination, WallZoneId } from '@/types/zones';
+import { ShotType } from '@/types/shot';
 import { FLOOR_ZONES, INTERMEDIATE_ZONE_LINES } from '@/lib/zones/zone-metadata';
+import { getShotContextHint } from '@/lib/court/shotContext';
 import { FloorZone } from './FloorZone';
 import { IntermediateZone } from './IntermediateZone';
 
@@ -16,6 +18,10 @@ interface CourtSVGProps {
   wallBounces?: WallZoneId[];
   onWallToggle?: (w: WallZoneId) => void;
   showWalls?: boolean;
+  // Full court orientation
+  playerTeam?: 'team1' | 'team2';
+  teamNames?: { team1: string; team2: string };
+  shotType?: ShotType | null;
 }
 
 // Wall zone definitions for SVG rendering
@@ -61,6 +67,25 @@ const WALL_SVG_ZONES: Array<{
   { id: 'P21', label: 'P21', x: 420, y: 375, width: 16, height: 125, wall: 'lateral_der', level: 'alta' },
 ];
 
+/** Offset zone points by dy. */
+function offsetZonePoints(zone: FloorZoneMetadata, dy: number): FloorZoneMetadata {
+  const nums = zone.points.split(/[\s,]+/).map(Number);
+  // Points are x,y pairs
+  const shifted = [];
+  for (let i = 0; i < nums.length; i += 2) {
+    shifted.push(`${nums[i]},${nums[i + 1] + dy}`);
+  }
+  return {
+    ...zone,
+    points: shifted.join(' '),
+    center: { x: zone.center.x, y: zone.center.y + dy },
+  };
+}
+
+const NET_Y = 500;
+const NET_HEIGHT = 20;
+const MIRROR_OFFSET = NET_Y + NET_HEIGHT; // 520
+
 export function CourtSVG({
   selectedDestination,
   onSelectZone,
@@ -71,7 +96,12 @@ export function CourtSVG({
   wallBounces,
   onWallToggle,
   showWalls = false,
+  playerTeam,
+  teamNames,
+  shotType,
 }: CourtSVGProps) {
+  const showFullCourt = !!playerTeam;
+
   const isZoneSelected = (id: FloorZoneId) => {
     if (!selectedDestination) return false;
     if (selectedDestination.type === 'single') return selectedDestination.zone === id;
@@ -87,8 +117,27 @@ export function CourtSVG({
   };
 
   const hasWalls = showWalls && wallBounces && onWallToggle;
-  // Expand viewBox when walls are shown
-  const viewBox = hasWalls ? '-40 0 480 540' : '0 0 400 500';
+  // In full court mode, hide fondo walls (they conflict with net separator)
+  const wallZonesToRender = showFullCourt
+    ? WALL_SVG_ZONES.filter((wz) => wz.wall !== 'fondo')
+    : WALL_SVG_ZONES;
+
+  // Compute viewBox
+  let viewBox: string;
+  if (showFullCourt) {
+    const totalHeight = MIRROR_OFFSET + 500; // 1020
+    viewBox = hasWalls ? `-40 0 480 ${totalHeight}` : `0 0 400 ${totalHeight}`;
+  } else {
+    viewBox = hasWalls ? '-40 0 480 540' : '0 0 400 500';
+  }
+
+  // Team labels
+  const rivalLabel = playerTeam && teamNames
+    ? (playerTeam === 'team1' ? teamNames.team2 : teamNames.team1)
+    : null;
+  const ownLabel = playerTeam && teamNames
+    ? (playerTeam === 'team1' ? teamNames.team1 : teamNames.team2)
+    : null;
 
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -97,6 +146,8 @@ export function CourtSVG({
         className="w-full h-auto rounded-lg overflow-hidden"
         style={{ background: '#0f2e1a' }}
       >
+        {/* ===== RIVAL HALF (top, interactive) ===== */}
+
         {/* Court base */}
         <rect x="0" y="0" width="400" height="500" fill="#163824" rx="8" />
 
@@ -105,11 +156,15 @@ export function CourtSVG({
         <rect x="0" y="140" width="400" height="175" fill="rgba(5, 150, 105, 0.04)" />
         <rect x="0" y="315" width="400" height="185" fill="rgba(37, 99, 235, 0.06)" />
 
-        {/* Net line */}
-        <line x1="0" y1="140" x2="400" y2="140" stroke="white" strokeWidth="3" opacity="0.5" />
-        <text x="200" y="136" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontWeight="bold" letterSpacing="2">
-          RED
-        </text>
+        {/* Net line (original, top of court — only when NOT full court) */}
+        {!showFullCourt && (
+          <>
+            <line x1="0" y1="140" x2="400" y2="140" stroke="white" strokeWidth="3" opacity="0.5" />
+            <text x="200" y="136" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontWeight="bold" letterSpacing="2">
+              RED
+            </text>
+          </>
+        )}
 
         {/* Grid lines - columns */}
         <line x1="80" y1="0" x2="80" y2="500" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
@@ -121,7 +176,14 @@ export function CourtSVG({
         {/* Grid lines - rows */}
         <line x1="0" y1="315" x2="400" y2="315" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
 
-        {/* Floor zones */}
+        {/* Rival team label (top) */}
+        {showFullCourt && rivalLabel && (
+          <text x="200" y="20" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="11" fontWeight="bold" pointerEvents="none" letterSpacing="1">
+            {`LADO DE ${rivalLabel.toUpperCase()}`}
+          </text>
+        )}
+
+        {/* Floor zones (rival — interactive) */}
         {FLOOR_ZONES.map((zone) => (
           <FloorZone
             key={zone.id}
@@ -150,13 +212,71 @@ export function CourtSVG({
           />
         ))}
 
+        {/* ===== NET SEPARATOR (full court only) ===== */}
+        {showFullCourt && (
+          <>
+            <rect x="0" y={NET_Y} width="400" height={NET_HEIGHT} fill="rgba(255,255,255,0.08)" />
+            <line x1="0" y1={NET_Y} x2="400" y2={NET_Y} stroke="white" strokeWidth="3" opacity="0.7" />
+            <line x1="0" y1={NET_Y + NET_HEIGHT} x2="400" y2={NET_Y + NET_HEIGHT} stroke="white" strokeWidth="3" opacity="0.7" />
+            <text x="200" y={NET_Y + 14} textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="12" fontWeight="bold" letterSpacing="4" pointerEvents="none">
+              RED
+            </text>
+          </>
+        )}
+
+        {/* ===== OWN HALF (bottom, dimmed, non-interactive) ===== */}
+        {showFullCourt && (
+          <>
+            {/* Own court base */}
+            <rect x="0" y={MIRROR_OFFSET} width="400" height="500" fill="#163824" />
+
+            {/* Own row background tints (same order: red near net, fondo at bottom) */}
+            <rect x="0" y={MIRROR_OFFSET} width="400" height="140" fill="rgba(220, 38, 38, 0.03)" />
+            <rect x="0" y={MIRROR_OFFSET + 140} width="400" height="175" fill="rgba(5, 150, 105, 0.02)" />
+            <rect x="0" y={MIRROR_OFFSET + 315} width="400" height="185" fill="rgba(37, 99, 235, 0.03)" />
+
+            {/* Own grid lines - columns */}
+            <line x1="80" y1={MIRROR_OFFSET} x2="80" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            <line x1="140" y1={MIRROR_OFFSET} x2="140" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            <line x1="200" y1={MIRROR_OFFSET} x2="200" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4,4" />
+            <line x1="260" y1={MIRROR_OFFSET} x2="260" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            <line x1="320" y1={MIRROR_OFFSET} x2="320" y2={MIRROR_OFFSET + 500} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+            {/* Own grid lines - rows */}
+            <line x1="0" y1={MIRROR_OFFSET + 315} x2="400" y2={MIRROR_OFFSET + 315} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+            {/* Own floor zones (dimmed, non-interactive) */}
+            {FLOOR_ZONES.map((zone) => {
+              const mirrored = offsetZonePoints(zone, MIRROR_OFFSET);
+              return (
+                <FloorZone
+                  key={`own-${zone.id}`}
+                  zone={mirrored}
+                  isSelected={false}
+                  onClick={() => {}}
+                  dimmed
+                />
+              );
+            })}
+
+            {/* Own team label (bottom) */}
+            {ownLabel && (
+              <text x="200" y={MIRROR_OFFSET + 490} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="11" fontWeight="bold" pointerEvents="none" letterSpacing="1">
+                {`TU LADO (${ownLabel.toUpperCase()})`}
+              </text>
+            )}
+          </>
+        )}
+
         {/* Wall zones integrated into SVG */}
         {hasWalls && (
           <>
             {/* Wall labels */}
-            <text x="200" y="514" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1">
-              FONDO
-            </text>
+            {!showFullCourt && (
+              <text x="200" y="514" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1">
+                FONDO
+              </text>
+            )}
             <text x="-28" y="250" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontWeight="bold" letterSpacing="1" transform="rotate(-90, -28, 250)">
               LAT. IZQ
             </text>
@@ -164,7 +284,7 @@ export function CourtSVG({
               LAT. DER
             </text>
 
-            {WALL_SVG_ZONES.map((wz) => {
+            {wallZonesToRender.map((wz) => {
               const isSelected = wallBounces!.includes(wz.id);
               const fillColor = isSelected
                 ? 'rgba(245, 158, 11, 0.4)'
@@ -221,8 +341,8 @@ export function CourtSVG({
           </>
         )}
 
-        {/* Hint when no zone selected */}
-        {interactive && !selectedDestination && (
+        {/* Hint when no zone selected (non full-court mode) */}
+        {interactive && !selectedDestination && !showFullCourt && (
           <text x="200" y="488" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="12" pointerEvents="none">
             Toca una zona donde cayo la pelota
           </text>
@@ -232,9 +352,16 @@ export function CourtSVG({
         {children}
       </svg>
 
+      {/* Contextual hint banner (full court mode) */}
+      {showFullCourt && (
+        <div className="mt-1 text-center text-xs text-muted-foreground/70 font-medium py-1.5 px-3 bg-card/50 rounded-md border border-border/30">
+          {getShotContextHint(shotType ?? null)}
+        </div>
+      )}
+
       {/* Selected zone info badge */}
       {selectedDestination && (
-        <div className="absolute bottom-2 left-2 right-2 bg-black/80 backdrop-blur-sm rounded-md px-3 py-1.5 text-xs text-center font-medium">
+        <div className={`${showFullCourt ? 'mt-1' : 'absolute bottom-2 left-2 right-2'} bg-black/80 backdrop-blur-sm rounded-md px-3 py-1.5 text-xs text-center font-medium`}>
           {selectedDestination.type === 'single'
             ? `Zona ${selectedDestination.zone}`
             : `Zona intermedia ${selectedDestination.primary},${selectedDestination.secondary}`
