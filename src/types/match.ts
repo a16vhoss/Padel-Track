@@ -29,6 +29,8 @@ export interface Point {
   cause: string;
   notation: string; // Full compact notation for the point
   timestamp: number;
+  durationMs?: number; // point duration in milliseconds
+  serveNumber?: 1 | 2; // which serve started this point
 }
 
 export interface Game {
@@ -56,6 +58,21 @@ export interface MatchConfig {
   tiebreakAt: number; // typically 6 (6-6)
 }
 
+export type CourtSide = 'derecha' | 'reves';
+
+export interface PlayerPositions {
+  J1: CourtSide;
+  J2: CourtSide;
+  J3: CourtSide;
+  J4: CourtSide;
+}
+
+export interface UndoEntry {
+  matchSnapshot: string; // JSON stringified Match
+  description: string;
+  timestamp: number;
+}
+
 export type MatchStatus = 'setup' | 'live' | 'finished';
 
 export interface Match {
@@ -69,4 +86,9 @@ export interface Match {
   winner: 'team1' | 'team2' | null;
   createdAt: number;
   updatedAt: number;
+  playerPositions?: PlayerPositions;
+  undoHistory?: UndoEntry[];
+  totalDurationMs?: number; // total match duration
+  startedAt?: number; // when the match actually started (first point)
+  finishedAt?: number; // when the match ended
 }

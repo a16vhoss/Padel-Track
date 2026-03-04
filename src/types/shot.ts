@@ -33,6 +33,8 @@ export interface ShotModifiers {
   wallBounces: WallZoneId[];
 }
 
+export type ServeNumber = 1 | 2;
+
 export interface Shot {
   id: string;
   sequenceNumber: number;
@@ -41,6 +43,7 @@ export interface Shot {
   modifiers: ShotModifiers;
   destination: ZoneDestination | null;
   status: ShotStatus;
+  serveNumber?: ServeNumber; // 1 = first serve, 2 = second serve (only for type 'S')
   notation: string; // Generated compact notation
   timestamp: number;
 }

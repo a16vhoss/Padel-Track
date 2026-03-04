@@ -22,6 +22,25 @@
   --court-zone-selected: rgba(34, 197, 94, 0.4);
 }
 
+.light {
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  --card: #ffffff;
+  --card-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --primary: #16a34a;
+  --primary-hover: #15803d;
+  --secondary: #2563eb;
+  --accent: #d97706;
+  --danger: #dc2626;
+  --muted: #94a3b8;
+  --team1: #16a34a;
+  --team2: #2563eb;
+  --court: #2d7a47;
+  --court-line: #1e293b;
+  --court-zone-hover: rgba(0, 0, 0, 0.1);
+  --court-zone-selected: rgba(22, 163, 74, 0.3);
+}
 
 body {
   background: var(--background);

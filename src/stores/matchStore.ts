@@ -13,17 +13,23 @@ interface MatchState {
   match: Match | null;
   scoring: MatchScore | null;
   engine: ScoringEngine | null;
+  undoStack: string[];
+  redoStack: string[];
 
   loadMatch: (id: string) => void;
   setMatch: (match: Match) => void;
   pointWon: (team: 'team1' | 'team2', shots: Shot[]) => void;
   getCurrentGameScore: () => { team1: string; team2: string };
+  undoLastPoint: () => void;
+  redoLastPoint: () => void;
 }
 
 export const useMatchStore = create<MatchState>((set, get) => ({
   match: null,
   scoring: null,
   engine: null,
+  undoStack: [],
+  redoStack: [],
 
   loadMatch: (id: string) => {
     const match = getMatch(id);
@@ -49,8 +55,13 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   },
 
   pointWon: (team, shots) => {
-    const { match, engine } = get();
+    const { match, engine, undoStack } = get();
     if (!match || !engine) return;
+
+    // Snapshot current match state for undo (limit 50)
+    const snapshot = JSON.stringify(match);
+    const newUndoStack = [...undoStack, snapshot].slice(-50);
+    set({ undoStack: newUndoStack, redoStack: [] });
 
     const scoring = engine.getScore();
     const scoreBefore = `${scoring.currentGame.team1}-${scoring.currentGame.team2}`;
@@ -144,6 +155,72 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       team1: String(scoring.currentGame.team1),
       team2: String(scoring.currentGame.team2),
     };
+  },
+
+  undoLastPoint: () => {
+    const { match, undoStack, redoStack } = get();
+    if (undoStack.length === 0 || !match) return;
+
+    // Save current state to redo stack
+    const currentSnapshot = JSON.stringify(match);
+    const newRedoStack = [...redoStack, currentSnapshot];
+
+    // Pop from undo stack
+    const newUndoStack = [...undoStack];
+    const previousSnapshot = newUndoStack.pop()!;
+    const restoredMatch: Match = JSON.parse(previousSnapshot);
+
+    // Re-create engine and replay all points to restore scoring state
+    const engine = createScoringEngine(restoredMatch.config);
+    for (const s of restoredMatch.sets) {
+      for (const g of s.games) {
+        for (const p of g.points) {
+          engine.pointWon(p.winner);
+        }
+      }
+    }
+
+    saveMatch(restoredMatch);
+    set({
+      match: restoredMatch,
+      engine,
+      scoring: engine.getScore(),
+      undoStack: newUndoStack,
+      redoStack: newRedoStack,
+    });
+  },
+
+  redoLastPoint: () => {
+    const { match, undoStack, redoStack } = get();
+    if (redoStack.length === 0 || !match) return;
+
+    // Save current state to undo stack
+    const currentSnapshot = JSON.stringify(match);
+    const newUndoStack = [...undoStack, currentSnapshot];
+
+    // Pop from redo stack
+    const newRedoStack = [...redoStack];
+    const nextSnapshot = newRedoStack.pop()!;
+    const restoredMatch: Match = JSON.parse(nextSnapshot);
+
+    // Re-create engine and replay all points to restore scoring state
+    const engine = createScoringEngine(restoredMatch.config);
+    for (const s of restoredMatch.sets) {
+      for (const g of s.games) {
+        for (const p of g.points) {
+          engine.pointWon(p.winner);
+        }
+      }
+    }
+
+    saveMatch(restoredMatch);
+    set({
+      match: restoredMatch,
+      engine,
+      scoring: engine.getScore(),
+      undoStack: newUndoStack,
+      redoStack: newRedoStack,
+    });
   },
 }));
 

@@ -9,6 +9,11 @@ import { CourtSVG } from '@/components/court/CourtSVG';
 import { WallPanel } from '@/components/court/WallPanel';
 import { Scoreboard } from '@/components/scoring/Scoreboard';
 import { GuiaRegistro } from '@/components/ui/GuiaRegistro';
+import { UndoRedoBar } from '@/components/recording/UndoRedoBar';
+import { TimerDisplay } from '@/components/recording/TimerDisplay';
+import { VoiceInput } from '@/components/recording/VoiceInput';
+import { KeyboardShortcutsHelp } from '@/components/recording/KeyboardShortcutsHelp';
+import { PointTransition } from '@/components/recording/PointTransition';
 
 function playerToTeam(player: PlayerId | null): 'team1' | 'team2' | undefined {
   if (!player) return undefined;
@@ -75,6 +80,10 @@ export default function RegistroPage() {
 
       {/* Right: Recording panel + scoreboard */}
       <div className="space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <KeyboardShortcutsHelp />
+          <TimerDisplay />
+        </div>
         <Scoreboard
           team1Name={match.teams[0].name}
           team2Name={match.teams[1].name}
@@ -86,9 +95,12 @@ export default function RegistroPage() {
           server={scoring.server}
           serveSide={scoring.serveSide}
         />
+        <UndoRedoBar />
         <RecordingPanel />
+        <VoiceInput />
       </div>
       </div>
+      <PointTransition />
     </div>
   );
 }
