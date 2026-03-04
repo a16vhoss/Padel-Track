@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 
 interface PointTransitionProps {
-  winner: 'team1' | 'team2' | null;
-  team1Name: string;
-  team2Name: string;
-  cause: string;
-  onComplete: () => void;
+  winner?: 'team1' | 'team2' | null;
+  team1Name?: string;
+  team2Name?: string;
+  cause?: string;
+  onComplete?: () => void;
 }
 
 const CAUSE_LABELS: Record<string, string> = {
@@ -34,7 +34,7 @@ const CAUSE_LABELS: Record<string, string> = {
   doble_falta: 'DOBLE FALTA',
 };
 
-export function PointTransition({ winner, team1Name, team2Name, cause, onComplete }: PointTransitionProps) {
+export function PointTransition({ winner = null, team1Name = 'Equipo 1', team2Name = 'Equipo 2', cause = '', onComplete = () => {} }: PointTransitionProps) {
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
 

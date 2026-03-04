@@ -53,7 +53,7 @@ export function SpectatorView({ match, scoring }: SpectatorViewProps) {
         </div>
 
         {/* Current game */}
-        {!scoring.isFinished && (
+        {scoring && !scoring.isFinished && (
           <div className="mt-4 text-center">
             <div className="text-[10px] text-muted mb-1">Juego Actual</div>
             <div className="text-4xl font-black">

@@ -101,7 +101,7 @@ export default function HomePage() {
       </div>
 
       {showImport && (
-        <ImportMatchModal onClose={() => setShowImport(false)} />
+        <ImportMatchModal isOpen={showImport} onClose={() => setShowImport(false)} onImported={() => { setShowImport(false); loadAll(); }} />
       )}
     </div>
   );
