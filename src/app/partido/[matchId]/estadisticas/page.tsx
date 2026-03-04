@@ -40,7 +40,20 @@ export default function EstadisticasPage() {
   const narrative = useMemo(() => match ? generateMatchNarrative(match) : null, [match]);
 
   if (!match) {
-    return <div className="text-center py-12 text-muted">Cargando...</div>;
+    return (
+      <div className="space-y-6 animate-fade-in-up">
+        <div className="grid grid-cols-3 gap-3">
+          <div className="skeleton h-24 rounded-xl" />
+          <div className="skeleton h-24 rounded-xl" />
+          <div className="skeleton h-24 rounded-xl" />
+        </div>
+        <div className="skeleton h-64 rounded-xl" />
+        <div className="grid grid-cols-2 gap-6">
+          <div className="skeleton h-48 rounded-xl" />
+          <div className="skeleton h-48 rounded-xl" />
+        </div>
+      </div>
+    );
   }
 
   if (stats.totalPoints === 0) {

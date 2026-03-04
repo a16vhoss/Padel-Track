@@ -34,7 +34,18 @@ export default function RegistroPage() {
   const shotType = useRecordingStore((s) => s.shotType);
 
   if (!match || !scoring) {
-    return <div className="text-center py-12 text-muted">Cargando...</div>;
+    return (
+      <div className="space-y-4 animate-fade-in-up">
+        <div className="skeleton h-12 rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="skeleton h-96 rounded-xl" />
+          <div className="space-y-4">
+            <div className="skeleton h-24 rounded-xl" />
+            <div className="skeleton h-48 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const sets = match.sets.map((s) => ({
