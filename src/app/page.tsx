@@ -32,7 +32,7 @@ const STEPS = [
 ];
 
 export default function HomePage() {
-  const { matches, loadAll } = useHistoryStore();
+  const { matches, loadAll, deleteMatch } = useHistoryStore();
   const [showImport, setShowImport] = useState(false);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function HomePage() {
 
       <div>
         <h2 className="text-lg font-semibold mb-3">Partidos</h2>
-        <MatchList matches={matches} />
+        <MatchList matches={matches} onDelete={deleteMatch} />
       </div>
 
       {/* Quick links */}

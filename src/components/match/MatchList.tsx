@@ -5,9 +5,10 @@ import { MatchCard } from './MatchCard';
 
 interface MatchListProps {
   matches: Match[];
+  onDelete?: (id: string) => void;
 }
 
-export function MatchList({ matches }: MatchListProps) {
+export function MatchList({ matches, onDelete }: MatchListProps) {
   if (matches.length === 0) {
     return (
       <div className="text-center py-12 text-muted">
@@ -20,7 +21,7 @@ export function MatchList({ matches }: MatchListProps) {
   return (
     <div className="grid gap-3">
       {matches.map((match) => (
-        <MatchCard key={match.id} match={match} />
+        <MatchCard key={match.id} match={match} onDelete={onDelete} />
       ))}
     </div>
   );

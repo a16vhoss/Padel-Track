@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/Badge';
 
 interface MatchCardProps {
   match: Match;
+  onDelete?: (id: string) => void;
 }
 
-export function MatchCard({ match }: MatchCardProps) {
+export function MatchCard({ match, onDelete }: MatchCardProps) {
   const statusLabels: Record<string, string> = {
     setup: 'Configurando',
     live: 'En Vivo',
@@ -27,6 +28,14 @@ export function MatchCard({ match }: MatchCardProps) {
     .map((s) => `${s.score.team1}-${s.score.team2}`)
     .join(' / ');
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDelete && window.confirm('Seguro que quieres borrar este partido? Esta accion no se puede deshacer.')) {
+      onDelete(match.id);
+    }
+  };
+
   return (
     <Link href={`/partido/${match.id}/registro`}>
       <Card hover className="flex flex-col gap-2">
@@ -34,9 +43,23 @@ export function MatchCard({ match }: MatchCardProps) {
           <Badge variant={statusVariants[match.status]}>
             {statusLabels[match.status]}
           </Badge>
-          <span className="text-xs text-muted">
-            {new Date(match.createdAt).toLocaleDateString('es-ES')}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted">
+              {new Date(match.createdAt).toLocaleDateString('es-ES')}
+            </span>
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                className="text-muted hover:text-danger transition-colors p-1 rounded hover:bg-danger/10"
+                title="Borrar partido"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center justify-between">
