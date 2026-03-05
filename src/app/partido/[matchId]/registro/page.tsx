@@ -32,6 +32,10 @@ export default function RegistroPage() {
   const quickMode = useRecordingStore((s) => s.quickMode);
   const player = useRecordingStore((s) => s.player);
   const shotType = useRecordingStore((s) => s.shotType);
+  const currentStep = useRecordingStore((s) => s.currentStep);
+
+  // Court is active when we're on the modifier/destination step (step 2 in detailed mode)
+  const isCourtActive = !quickMode && currentStep === 2;
 
   if (!match || !scoring) {
     return (
@@ -64,7 +68,7 @@ export default function RegistroPage() {
       <GuiaRegistro />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Left: Court with integrated walls */}
-      <div className="space-y-4">
+      <div className={`space-y-4 rounded-xl transition-all duration-300 ${isCourtActive ? 'ring-2 ring-accent/60 ring-offset-2 ring-offset-background' : ''}`}>
         <CourtSVG
           selectedDestination={destination}
           onSelectZone={setDestination}
