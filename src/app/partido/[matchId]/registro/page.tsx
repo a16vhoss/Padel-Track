@@ -1,11 +1,16 @@
 'use client';
 
+import { useRef, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useMatch } from '@/hooks/useMatch';
 import { useRecordingStore } from '@/stores/recordingStore';
+import { usePositionStore } from '@/stores/positionStore';
+import { usePointStore } from '@/stores/pointStore';
 import { PlayerId } from '@/types/shot';
+import { inferPositions } from '@/lib/positions/inferPositions';
 import { RecordingPanel } from '@/components/recording/RecordingPanel';
 import { CourtSVG } from '@/components/court/CourtSVG';
+import { DraggablePlayersOverlay } from '@/components/court/DraggablePlayersOverlay';
 import { WallPanel } from '@/components/court/WallPanel';
 import { Scoreboard } from '@/components/scoring/Scoreboard';
 import { GuiaRegistro } from '@/components/ui/GuiaRegistro';
@@ -24,6 +29,7 @@ export default function RegistroPage() {
   const params = useParams();
   const matchId = params.matchId as string;
   const { match, scoring } = useMatch(matchId);
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   const destination = useRecordingStore((s) => s.destination);
   const setDestination = useRecordingStore((s) => s.setDestination);
@@ -33,6 +39,40 @@ export default function RegistroPage() {
   const player = useRecordingStore((s) => s.player);
   const shotType = useRecordingStore((s) => s.shotType);
   const currentStep = useRecordingStore((s) => s.currentStep);
+
+  const trackingEnabled = usePositionStore((s) => s.trackingEnabled);
+  const setTrackingEnabled = usePositionStore((s) => s.setTrackingEnabled);
+  const positions = usePositionStore((s) => s.positions);
+  const setPlayerPosition = usePositionStore((s) => s.setPlayerPosition);
+  const setAllPositions = usePositionStore((s) => s.setAllPositions);
+  const setNeedsManualInput = usePositionStore((s) => s.setNeedsManualInput);
+  const needsManualInput = usePositionStore((s) => s.needsManualInput);
+
+  const shots = usePointStore((s) => s.shots);
+
+  // Auto-infer positions when shots change or player selection changes
+  useEffect(() => {
+    if (!trackingEnabled || !scoring || !player) return;
+
+    const result = inferPositions(
+      shots,
+      player,
+      scoring.server,
+      scoring.serveSide,
+      positions,
+    );
+
+    setAllPositions(result.positions);
+    setNeedsManualInput(result.needsManualInput);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shots.length, player, trackingEnabled, scoring?.server, scoring?.serveSide]);
+
+  const handlePositionChange = useCallback(
+    (p: PlayerId, pos: { x: number; y: number }) => {
+      setPlayerPosition(p, pos);
+    },
+    [setPlayerPosition],
+  );
 
   // Court is active when we're on the modifier/destination step (step 2 in detailed mode)
   const isCourtActive = !quickMode && currentStep === 2;
@@ -69,6 +109,28 @@ export default function RegistroPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Left: Court with integrated walls */}
       <div className={`space-y-4 rounded-xl transition-all duration-300 ${isCourtActive ? 'ring-2 ring-accent/60 ring-offset-2 ring-offset-background' : ''}`}>
+        {/* Position tracking toggle */}
+        <div className="flex items-center justify-end gap-2">
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <span className="text-[10px] text-muted">Posiciones</span>
+            <button
+              type="button"
+              onClick={() => setTrackingEnabled(!trackingEnabled)}
+              className={`
+                relative w-8 h-4 rounded-full transition-colors
+                ${trackingEnabled ? 'bg-primary' : 'bg-card border border-border'}
+              `}
+            >
+              <span
+                className={`
+                  absolute top-0.5 w-3 h-3 rounded-full transition-transform
+                  ${trackingEnabled ? 'translate-x-4 bg-black' : 'translate-x-0.5 bg-muted'}
+                `}
+              />
+            </button>
+          </label>
+        </div>
+
         <CourtSVG
           selectedDestination={destination}
           onSelectZone={setDestination}
@@ -79,7 +141,18 @@ export default function RegistroPage() {
           playerTeam={playerTeam}
           teamNames={teamNames}
           shotType={shotType}
-        />
+          svgRef={svgRef}
+        >
+          {trackingEnabled && (
+            <DraggablePlayersOverlay
+              positions={positions}
+              onPositionChange={handlePositionChange}
+              teams={match.teams}
+              needsManualInput={needsManualInput}
+              svgRef={svgRef}
+            />
+          )}
+        </CourtSVG>
         {/* Fallback WallPanel for quick mode or small screens */}
         {quickMode && (
           <details className="text-xs">

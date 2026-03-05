@@ -26,6 +26,8 @@ interface CourtSVGProps {
   playerTeam?: 'team1' | 'team2';
   teamNames?: { team1: string; team2: string };
   shotType?: ShotType | null;
+  // SVG ref for coordinate transformations (e.g. draggable overlays)
+  svgRef?: React.Ref<SVGSVGElement>;
 }
 
 // Wall zone SVG definitions — wider walls with gap separation
@@ -140,6 +142,7 @@ export function CourtSVG({
   playerTeam,
   teamNames,
   shotType,
+  svgRef,
 }: CourtSVGProps) {
   const [hoveredWall, setHoveredWall] = useState<WallZoneId | null>(null);
 
@@ -191,6 +194,7 @@ export function CourtSVG({
   return (
     <div className="relative w-full max-w-md mx-auto">
       <svg
+        ref={svgRef}
         viewBox={viewBox}
         className="w-full h-auto rounded-lg overflow-hidden"
         style={{ background: '#0a1f12' }}

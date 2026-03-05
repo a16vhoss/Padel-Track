@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { Shot, PlayerId, ShotType, ShotModifiers, ShotStatus } from '@/types/shot';
+import { Shot, PlayerId, ShotType, ShotModifiers, ShotStatus, AllPlayerPositions } from '@/types/shot';
 import { ZoneDestination } from '@/types/zones';
 import { generateNotation } from '@/lib/notation/generator';
 
@@ -12,6 +12,7 @@ interface ShotInput {
   modifiers: ShotModifiers;
   destination: ZoneDestination | null;
   status: ShotStatus;
+  playerPositions?: AllPlayerPositions;
 }
 
 interface PointState {
@@ -39,6 +40,7 @@ export const usePointStore = create<PointState>((set, get) => ({
       status: input.status,
       notation: '',
       timestamp: Date.now(),
+      ...(input.playerPositions ? { playerPositions: input.playerPositions } : {}),
     };
 
     // Generate notation
