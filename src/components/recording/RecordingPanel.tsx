@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useRecordingStore } from '@/stores/recordingStore';
 import { usePointStore } from '@/stores/pointStore';
 import { useMatchStore } from '@/stores/matchStore';
+import { usePositionStore } from '@/stores/positionStore';
 import { PlayerSelector } from './PlayerSelector';
 import { ShotTypeSelector } from './ShotTypeSelector';
 import { ModifierSelector } from './ModifierSelector';
@@ -146,12 +147,14 @@ export function RecordingPanel() {
   const handleAddShot = () => {
     if (!canAddShot) return;
 
+    const posStore = usePositionStore.getState();
     addShot({
       player: player!,
       type: shotType!,
       modifiers: { direction, power, spin, wallBounces },
       destination: destination,
       status,
+      ...(posStore.trackingEnabled ? { playerPositions: { ...posStore.positions } } : {}),
     });
 
     if (isPointEnding) {
@@ -192,12 +195,14 @@ export function RecordingPanel() {
           // Re-read fresh state for the shot
           const { player: p, shotType: st, direction: d, power: pw, spin: sp, wallBounces: wb, destination: dest } = store;
           const ptStore = usePointStore.getState();
+          const posState = usePositionStore.getState();
           ptStore.addShot({
             player: p!,
             type: st!,
             modifiers: { direction: d, power: pw, spin: sp, wallBounces: wb },
             destination: dest,
             status: s,
+            ...(posState.trackingEnabled ? { playerPositions: { ...posState.positions } } : {}),
           });
 
           const isTeam1 = p === 'J1' || p === 'J2';

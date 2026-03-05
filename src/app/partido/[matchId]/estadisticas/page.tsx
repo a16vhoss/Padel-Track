@@ -27,8 +27,49 @@ import { computeRallyStats } from '@/lib/stats/rallyStats';
 import { computePlayerRadarStats } from '@/lib/stats/advancedStats';
 import { generateTacticalRecommendations, generateMatchNarrative } from '@/lib/ai/tacticalAnalysis';
 import { PlayerId } from '@/types/shot';
+import { Point } from '@/types/match';
 import { PageTransition, FadeIn, StaggerContainer, StaggerItem } from '@/components/motion';
 import { Separator } from '@/components/ui/separator';
+import { PointReplayAnimation } from '@/components/analysis/PointReplayAnimation';
+
+function PointReplaySection({ points, teams }: { points: Point[]; teams: [import('@/types/match').Team, import('@/types/match').Team] }) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const selected = points[selectedIdx];
+
+  return (
+    <Card>
+      <h3 className="text-sm font-semibold mb-3">Reproduce el movimiento de los jugadores golpe a golpe</h3>
+
+      {/* Point selector */}
+      <div className="mb-4">
+        <label className="text-xs text-muted block mb-1">Selecciona un punto</label>
+        <div className="flex flex-wrap gap-1">
+          {points.map((p, i) => (
+            <button
+              key={p.id}
+              onClick={() => setSelectedIdx(i)}
+              className={`text-[10px] px-2 py-1 rounded border transition-colors ${
+                i === selectedIdx
+                  ? 'bg-primary text-black border-primary font-bold'
+                  : 'bg-card border-border text-muted hover:text-foreground'
+              }`}
+            >
+              P{p.pointNumber} ({p.scoreBefore}) {p.winner === 'team1' ? '●' : '○'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Replay animation */}
+      {selected && (
+        <PointReplayAnimation
+          shots={selected.shots}
+          teams={teams}
+        />
+      )}
+    </Card>
+  );
+}
 
 function SectionHeader({ icon, title }: { icon: string; title: string }) {
   return (
@@ -106,6 +147,12 @@ export default function EstadisticasPage() {
     );
   }
 
+  // Get all points with position data for replay
+  const allPoints = match.sets.flatMap((s) => s.games.flatMap((g) => g.points));
+  const pointsWithPositions = allPoints.filter((p) =>
+    p.shots.some((s) => s.playerPositions)
+  );
+
   const team1Color = '#22c55e';
   const team2Color = '#3b82f6';
 
@@ -169,6 +216,19 @@ export default function EstadisticasPage() {
         <FadeIn delay={0.1}>
           <AnalysisCourt match={match} setFilter={sf} />
         </FadeIn>
+
+        {/* ========== SECTION: REPLAY DE PUNTO ========== */}
+        {pointsWithPositions.length > 0 && (
+          <>
+            <SectionHeader icon="🎬" title="Replay de Punto" />
+            <FadeIn delay={0.1}>
+              <PointReplaySection
+                points={pointsWithPositions}
+                teams={match.teams}
+              />
+            </FadeIn>
+          </>
+        )}
 
         {/* ========== SECTION 3: SERVICIO Y RESTO ========== */}
         <SectionHeader icon="🎾" title="Servicio y Resto" />

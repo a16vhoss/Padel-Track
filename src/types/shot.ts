@@ -2,6 +2,18 @@ import { ZoneDestination, WallZoneId } from './zones';
 
 export type PlayerId = 'J1' | 'J2' | 'J3' | 'J4';
 
+export interface PlayerCoords {
+  x: number;  // 0-400 (ancho cancha SVG)
+  y: number;  // 0-500 (alto media cancha SVG)
+}
+
+export interface AllPlayerPositions {
+  J1: PlayerCoords;
+  J2: PlayerCoords;
+  J3: PlayerCoords;
+  J4: PlayerCoords;
+}
+
 export type ShotType =
   | 'S'    // Saque (Serve)
   | 'Re'   // Resto (Return)
@@ -46,6 +58,7 @@ export interface Shot {
   serveNumber?: ServeNumber; // 1 = first serve, 2 = second serve (only for type 'S')
   notation: string; // Generated compact notation
   timestamp: number;
+  playerPositions?: AllPlayerPositions; // posición de los 4 jugadores al momento del golpe
 }
 
 // Shot type metadata for UI
