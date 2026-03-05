@@ -27,13 +27,15 @@ import { computeRallyStats } from '@/lib/stats/rallyStats';
 import { computePlayerRadarStats } from '@/lib/stats/advancedStats';
 import { generateTacticalRecommendations, generateMatchNarrative } from '@/lib/ai/tacticalAnalysis';
 import { PlayerId } from '@/types/shot';
+import { PageTransition, FadeIn, StaggerContainer, StaggerItem } from '@/components/motion';
+import { Separator } from '@/components/ui/separator';
 
 function SectionHeader({ icon, title }: { icon: string; title: string }) {
   return (
     <div className="flex items-center gap-2 pt-2">
       <span className="text-base">{icon}</span>
-      <h2 className="text-sm font-bold tracking-wide uppercase text-muted">{title}</h2>
-      <div className="flex-1 h-px bg-border/50" />
+      <h2 className="text-sm font-bold tracking-wide uppercase text-muted-foreground">{title}</h2>
+      <Separator className="flex-1" />
     </div>
   );
 }
@@ -108,148 +110,180 @@ export default function EstadisticasPage() {
   const team2Color = '#3b82f6';
 
   return (
-    <div className="space-y-6">
-      {/* Set Filter Bar — sticky at top */}
-      <SetFilterBar
-        sets={match.sets}
-        activeFilter={setFilter}
-        onChange={setSetFilter}
-      />
-
-      {/* ========== SECTION 1: RESUMEN ========== */}
-      <SectionHeader icon="📊" title="Resumen" />
-
-      <StatsOverview
-        stats={stats}
-        team1Name={match.teams[0].name}
-        team2Name={match.teams[1].name}
-        match={match}
-        shotEffectiveness={advancedStats?.shotEffectiveness}
-      />
-
-      {/* Player Radar Charts */}
-      {radarStats && (
-        <Card>
-          <h3 className="text-sm font-semibold mb-3">Perfil de Jugadores</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {radarStats.map(({ playerId, stats: rs }) => {
-              const isTeam1 = playerId === 'J1' || playerId === 'J2';
-              return (
-                <PlayerRadarChart
-                  key={playerId}
-                  playerName={playerNames[playerId] || playerId}
-                  color={isTeam1 ? team1Color : team2Color}
-                  stats={[
-                    { label: 'Ataque', value: rs.attack },
-                    { label: 'Defensa', value: rs.defense },
-                    { label: 'Saque', value: rs.serve },
-                    { label: 'Resto', value: rs.return_ },
-                    { label: 'Red', value: rs.net },
-                    { label: 'Consist.', value: rs.consistency },
-                  ]}
-                />
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
-      {/* ========== SECTION 2: ANALISIS DE CANCHA ========== */}
-      <SectionHeader icon="🏟" title="Analisis de Cancha" />
-
-      <AnalysisCourt match={match} setFilter={sf} />
-
-      {/* ========== SECTION 3: SERVICIO Y RESTO ========== */}
-      <SectionHeader icon="🎾" title="Servicio y Resto" />
-
-      {/* Serve Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {serveStatsTeam1 && (
-          <ServeStatsCard stats={serveStatsTeam1} teamName={match.teams[0].name} />
-        )}
-        {serveStatsTeam2 && (
-          <ServeStatsCard stats={serveStatsTeam2} teamName={match.teams[1].name} />
-        )}
-      </div>
-
-      {/* Return Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {returnStatsTeam1 && (
-          <ReturnStatsCard stats={returnStatsTeam1} teamName={match.teams[0].name} />
-        )}
-        {returnStatsTeam2 && (
-          <ReturnStatsCard stats={returnStatsTeam2} teamName={match.teams[1].name} />
-        )}
-      </div>
-
-      {/* Serve Direction */}
-      {serveDirections && (
-        <ServeDirectionDiagram
-          data={serveDirections}
-          playerNames={playerNames}
+    <PageTransition>
+      <div className="space-y-6">
+        {/* Set Filter Bar — sticky at top */}
+        <SetFilterBar
+          sets={match.sets}
+          activeFilter={setFilter}
+          onChange={setSetFilter}
         />
-      )}
 
-      {/* ========== SECTION 4: ANALISIS PROFUNDO ========== */}
-      <SectionHeader icon="🔬" title="Analisis Profundo" />
+        {/* ========== SECTION 1: RESUMEN ========== */}
+        <SectionHeader icon="📊" title="Resumen" />
 
-      {/* Momentum Chart */}
-      {momentum && (
-        <MomentumChart
-          data={momentum}
-          team1Name={match.teams[0].name}
-          team2Name={match.teams[1].name}
-        />
-      )}
+        <StaggerContainer className="space-y-4">
+          <StaggerItem>
+            <StatsOverview
+              stats={stats}
+              team1Name={match.teams[0].name}
+              team2Name={match.teams[1].name}
+              match={match}
+              shotEffectiveness={advancedStats?.shotEffectiveness}
+            />
+          </StaggerItem>
 
-      {/* Rally & Wall Stats side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {rallyStats && (
-          <RallyStatsCard
-            stats={rallyStats}
-            team1Name={match.teams[0].name}
-            team2Name={match.teams[1].name}
-          />
-        )}
-        {wallStats && <WallStatsCard stats={wallStats} />}
-      </div>
-
-      {/* Tactical Patterns */}
-      {patterns && <PatternsCard analysis={patterns} />}
-
-      {/* AI Tactical Insights */}
-      {narrative && (
-        <TacticalInsights
-          recommendations={recommendations}
-          narrative={narrative}
-        />
-      )}
-
-      {/* Navigation to Scouting & Training */}
-      <Card>
-        <h3 className="text-sm font-semibold mb-3">Analisis por jugador</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {match.teams.flatMap((team) =>
-            team.players.map((player) => (
-              <Link
-                key={player.id}
-                href={`/scouting?player=${player.id}`}
-                className="text-xs bg-background border border-border rounded px-3 py-2 hover:border-primary transition-colors text-center"
-              >
-                Scouting de {player.name}
-              </Link>
-            ))
+          {/* Player Radar Charts */}
+          {radarStats && (
+            <StaggerItem>
+              <Card>
+                <h3 className="text-sm font-semibold mb-3">Perfil de Jugadores</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {radarStats.map(({ playerId, stats: rs }) => {
+                    const isTeam1 = playerId === 'J1' || playerId === 'J2';
+                    return (
+                      <PlayerRadarChart
+                        key={playerId}
+                        playerName={playerNames[playerId] || playerId}
+                        color={isTeam1 ? team1Color : team2Color}
+                        stats={[
+                          { label: 'Ataque', value: rs.attack },
+                          { label: 'Defensa', value: rs.defense },
+                          { label: 'Saque', value: rs.serve },
+                          { label: 'Resto', value: rs.return_ },
+                          { label: 'Red', value: rs.net },
+                          { label: 'Consist.', value: rs.consistency },
+                        ]}
+                      />
+                    );
+                  })}
+                </div>
+              </Card>
+            </StaggerItem>
           )}
-        </div>
-        <div className="mt-3">
-          <Link
-            href="/entrenamiento"
-            className="inline-block text-xs bg-primary text-black rounded px-3 py-2 font-medium hover:bg-primary-hover transition-colors"
-          >
-            Plan de Entrenamiento
-          </Link>
-        </div>
-      </Card>
-    </div>
+        </StaggerContainer>
+
+        {/* ========== SECTION 2: ANALISIS DE CANCHA ========== */}
+        <SectionHeader icon="🏟" title="Analisis de Cancha" />
+
+        <FadeIn delay={0.1}>
+          <AnalysisCourt match={match} setFilter={sf} />
+        </FadeIn>
+
+        {/* ========== SECTION 3: SERVICIO Y RESTO ========== */}
+        <SectionHeader icon="🎾" title="Servicio y Resto" />
+
+        <StaggerContainer className="space-y-6">
+          {/* Serve Stats */}
+          <StaggerItem>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {serveStatsTeam1 && (
+                <ServeStatsCard stats={serveStatsTeam1} teamName={match.teams[0].name} />
+              )}
+              {serveStatsTeam2 && (
+                <ServeStatsCard stats={serveStatsTeam2} teamName={match.teams[1].name} />
+              )}
+            </div>
+          </StaggerItem>
+
+          {/* Return Stats */}
+          <StaggerItem>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {returnStatsTeam1 && (
+                <ReturnStatsCard stats={returnStatsTeam1} teamName={match.teams[0].name} />
+              )}
+              {returnStatsTeam2 && (
+                <ReturnStatsCard stats={returnStatsTeam2} teamName={match.teams[1].name} />
+              )}
+            </div>
+          </StaggerItem>
+
+          {/* Serve Direction */}
+          {serveDirections && (
+            <StaggerItem>
+              <ServeDirectionDiagram
+                data={serveDirections}
+                playerNames={playerNames}
+              />
+            </StaggerItem>
+          )}
+        </StaggerContainer>
+
+        {/* ========== SECTION 4: ANALISIS PROFUNDO ========== */}
+        <SectionHeader icon="🔬" title="Analisis Profundo" />
+
+        <StaggerContainer className="space-y-6">
+          {/* Momentum Chart */}
+          {momentum && (
+            <StaggerItem>
+              <MomentumChart
+                data={momentum}
+                team1Name={match.teams[0].name}
+                team2Name={match.teams[1].name}
+              />
+            </StaggerItem>
+          )}
+
+          {/* Rally & Wall Stats side by side */}
+          <StaggerItem>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {rallyStats && (
+                <RallyStatsCard
+                  stats={rallyStats}
+                  team1Name={match.teams[0].name}
+                  team2Name={match.teams[1].name}
+                />
+              )}
+              {wallStats && <WallStatsCard stats={wallStats} />}
+            </div>
+          </StaggerItem>
+
+          {/* Tactical Patterns */}
+          {patterns && (
+            <StaggerItem>
+              <PatternsCard analysis={patterns} />
+            </StaggerItem>
+          )}
+
+          {/* AI Tactical Insights */}
+          {narrative && (
+            <StaggerItem>
+              <TacticalInsights
+                recommendations={recommendations}
+                narrative={narrative}
+              />
+            </StaggerItem>
+          )}
+        </StaggerContainer>
+
+        {/* Navigation to Scouting & Training */}
+        <FadeIn delay={0.2}>
+          <Card>
+            <h3 className="text-sm font-semibold mb-3">Analisis por jugador</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {match.teams.flatMap((team) =>
+                team.players.map((player) => (
+                  <Link
+                    key={player.id}
+                    href={`/scouting?player=${player.id}`}
+                    className="text-xs bg-background border border-border rounded px-3 py-2 hover:border-primary transition-colors text-center"
+                  >
+                    Scouting de {player.name}
+                  </Link>
+                ))
+              )}
+            </div>
+            <div className="mt-3">
+              <Link
+                href="/entrenamiento"
+                className="inline-block text-xs bg-primary text-black rounded px-3 py-2 font-medium hover:bg-primary-hover transition-colors"
+              >
+                Plan de Entrenamiento
+              </Link>
+            </div>
+          </Card>
+        </FadeIn>
+      </div>
+    </PageTransition>
   );
 }

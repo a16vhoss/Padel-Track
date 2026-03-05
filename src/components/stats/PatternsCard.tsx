@@ -75,7 +75,7 @@ function PatternRow({ pattern, type, rank }: { pattern: TacticalPattern; type: '
   return (
     <div className={`flex items-center gap-2 p-2 rounded-lg border ${borderColor} ${barBg} text-xs`}>
       {/* Rank */}
-      <span className="text-[10px] text-muted/50 font-bold w-4 text-center">
+      <span className="text-xs text-muted-foreground/50 font-bold w-4 text-center">
         {rank}
       </span>
 
@@ -94,7 +94,7 @@ function PatternRow({ pattern, type, rank }: { pattern: TacticalPattern; type: '
       </div>
 
       {/* Count */}
-      <span className="text-[10px] text-muted font-medium whitespace-nowrap">
+      <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
         x{pattern.count}
       </span>
 

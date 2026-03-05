@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from './Button';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -220,7 +221,11 @@ export function NavBar() {
                   `}
                 >
                   {active && (
-                    <div className="absolute -top-1 w-8 h-1 bg-primary rounded-full nav-pill" />
+                    <motion.div
+                      layoutId="nav-indicator"
+                      className="absolute -top-1 w-8 h-1 bg-primary rounded-full"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
                   )}
                   <Icon className={active ? 'text-primary' : ''} />
                   <span className={`text-[10px] font-medium ${active ? 'font-bold' : ''}`}>

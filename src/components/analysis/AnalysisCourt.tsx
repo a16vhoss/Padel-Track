@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Match } from '@/types/match';
 import { AnalysisFilter, computeWallHeatmap } from '@/lib/stats/advancedStats';
 import { useAdvancedStats } from '@/hooks/useAdvancedStats';
@@ -82,17 +83,27 @@ export function AnalysisCourt({ match, setFilter }: AnalysisCourtProps) {
 
       <AnalysisTabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <CourtSVG
-        selectedDestination={null}
-        onSelectZone={() => {}}
-        showLabels={false}
-        interactive={false}
-        wallHeatmapData={isWallTab ? Object.fromEntries(
-          Object.entries(wallHeatmap.zones).map(([k, v]) => [k, v.total])
-        ) : undefined}
-      >
-        {renderOverlay()}
-      </CourtSVG>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <CourtSVG
+            selectedDestination={null}
+            onSelectZone={() => {}}
+            showLabels={false}
+            interactive={false}
+            wallHeatmapData={isWallTab ? Object.fromEntries(
+              Object.entries(wallHeatmap.zones).map(([k, v]) => [k, v.total])
+            ) : undefined}
+          >
+            {renderOverlay()}
+          </CourtSVG>
+        </motion.div>
+      </AnimatePresence>
 
       {activeTab === 'pointReplay' && replayPoint && (
         <PointReplayControls

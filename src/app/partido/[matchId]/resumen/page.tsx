@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ShareMatch } from '@/components/match/ShareMatch';
 import { useToastStore } from '@/stores/toastStore';
+import { PageTransition } from '@/components/motion';
 
 export default function ResumenPage() {
   const params = useParams();
@@ -41,7 +42,7 @@ export default function ResumenPage() {
   const allPoints = match.sets.flatMap((s) => s.games.flatMap((g) => g.points));
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       {/* Match summary */}
       <Card>
         <h2 className="text-lg font-semibold mb-3">Resumen del Partido</h2>
@@ -126,6 +127,6 @@ export default function ResumenPage() {
           {jsonStr}
         </pre>
       </Card>
-    </div>
+    </PageTransition>
   );
 }

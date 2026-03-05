@@ -24,26 +24,26 @@ export function RallyStatsCard({ stats, team1Name, team2Name }: RallyStatsCardPr
       <div className="grid grid-cols-4 gap-2 mb-4">
         <div className="text-center bg-primary/5 rounded-lg p-2 border border-primary/10">
           <div className="text-xl font-black text-primary">{stats.averageRallyLength}</div>
-          <div className="text-[9px] text-muted font-medium uppercase tracking-wide">Promedio</div>
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Promedio</div>
         </div>
         <div className="text-center bg-secondary/5 rounded-lg p-2 border border-secondary/10">
           <div className="text-xl font-black text-secondary">{stats.medianRallyLength}</div>
-          <div className="text-[9px] text-muted font-medium uppercase tracking-wide">Mediana</div>
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Mediana</div>
         </div>
         <div className="text-center bg-amber-500/5 rounded-lg p-2 border border-amber-500/10">
           <div className="text-xl font-black text-amber-400">{stats.maxRallyLength}</div>
-          <div className="text-[9px] text-muted font-medium uppercase tracking-wide">Max</div>
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Max</div>
         </div>
         <div className="text-center bg-background/50 rounded-lg p-2 border border-border/30">
           <div className="text-xl font-black text-muted">{stats.minRallyLength}</div>
-          <div className="text-[9px] text-muted font-medium uppercase tracking-wide">Min</div>
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Min</div>
         </div>
       </div>
 
       {/* Histogram-style distribution */}
       <div className="mb-4">
-        <div className="text-[10px] text-muted mb-2 font-medium">Distribucion por duracion</div>
-        <div className="flex items-end gap-1" style={{ height: '80px' }}>
+        <div className="text-xs text-muted-foreground mb-2 font-medium">Distribucion por duracion</div>
+        <div className="flex items-end gap-1" style={{ height: '100px' }}>
           {stats.buckets.map((bucket) => {
             const heightPct = (bucket.count / maxCount) * 100;
             const team1Pct = bucket.count > 0 ? (bucket.team1Wins / bucket.count) * 100 : 50;
@@ -51,7 +51,7 @@ export function RallyStatsCard({ stats, team1Name, team2Name }: RallyStatsCardPr
             return (
               <div key={bucket.label} className="flex-1 flex flex-col items-center gap-0.5 h-full justify-end group">
                 {/* Count label on hover */}
-                <span className="text-[8px] font-bold text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-[11px] font-bold text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                   {bucket.count}
                 </span>
 
@@ -70,7 +70,7 @@ export function RallyStatsCard({ stats, team1Name, team2Name }: RallyStatsCardPr
                 </div>
 
                 {/* Label */}
-                <span className="text-[8px] text-muted mt-0.5 leading-tight text-center">
+                <span className="text-[11px] text-muted-foreground mt-0.5 leading-tight text-center">
                   {bucket.label}
                 </span>
               </div>
@@ -111,7 +111,7 @@ export function RallyStatsCard({ stats, team1Name, team2Name }: RallyStatsCardPr
       </div>
 
       {/* Legend */}
-      <div className="flex gap-3 text-[10px] text-muted">
+      <div className="flex gap-3 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-gradient-to-t from-green-600 to-green-400" />
           {team1Name}
@@ -125,13 +125,13 @@ export function RallyStatsCard({ stats, team1Name, team2Name }: RallyStatsCardPr
       {/* Per-set breakdown */}
       {stats.distributionBySet.length > 1 && (
         <div className="mt-3 pt-3 border-t border-border/30">
-          <div className="text-[10px] text-muted mb-1.5 font-medium">Promedio por set</div>
+          <div className="text-xs text-muted-foreground mb-1.5 font-medium">Promedio por set</div>
           <div className="flex gap-3">
             {stats.distributionBySet.map((s) => (
               <div key={s.set} className="text-center bg-background/50 rounded px-3 py-1.5 border border-border/30">
-                <div className="text-[9px] text-muted">Set {s.set}</div>
+                <div className="text-[11px] text-muted-foreground">Set {s.set}</div>
                 <div className="text-sm font-black">{s.average}</div>
-                <div className="text-[8px] text-muted">{s.total} pts</div>
+                <div className="text-[11px] text-muted-foreground">{s.total} pts</div>
               </div>
             ))}
           </div>

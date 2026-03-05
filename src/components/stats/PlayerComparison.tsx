@@ -46,7 +46,7 @@ function H2HBar({ label, value1, value2, team1Name, team2Name, format }: {
       </span>
 
       {/* Label (centered overlay) */}
-      <span className="absolute left-1/2 -translate-x-1/2 text-[9px] font-bold text-white/70 pointer-events-none mix-blend-difference">
+      <span className="absolute left-1/2 -translate-x-1/2 text-[11px] font-bold text-white/70 pointer-events-none mix-blend-difference">
         {label}
       </span>
     </div>
@@ -156,10 +156,10 @@ export function PlayerComparison({ match, shotsByPlayer }: PlayerComparisonProps
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`w-3 h-3 rounded-full ${teamColor}`} />
                   <span className="text-sm font-bold">{player.name}</span>
-                  <span className="text-[10px] text-muted ml-auto bg-background/50 px-1.5 py-0.5 rounded">{player.id}</span>
+                  <span className="text-xs text-muted-foreground ml-auto bg-background/50 px-1.5 py-0.5 rounded">{player.id}</span>
                 </div>
                 <div className={`text-2xl font-black ${teamColorText}`}>{shots}</div>
-                <div className="text-[10px] text-muted">golpes totales</div>
+                <div className="text-xs text-muted-foreground">golpes totales</div>
                 <div className="mt-2 h-2 bg-border/30 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${teamColor} rounded-full transition-all duration-500`}

@@ -52,7 +52,7 @@ export function MomentumChart({ data, team1Name, team2Name }: MomentumChartProps
     <Card>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold">Momentum del Partido</h3>
-        <div className="flex items-center gap-3 text-[10px]">
+        <div className="flex items-center gap-3 text-xs">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-team1" /> {team1Name}
           </span>
@@ -182,34 +182,34 @@ export function MomentumChart({ data, team1Name, team2Name }: MomentumChartProps
       {/* Key stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mt-3">
         <div className="bg-background/50 rounded-lg p-2.5 border border-border/30">
-          <div className="text-muted text-[10px] font-medium">Racha mas larga</div>
+          <div className="text-muted text-xs font-medium">Racha mas larga</div>
           <div className="font-black text-lg mt-0.5">{data.longestStreak.length}</div>
-          <div className={`text-[10px] font-semibold ${data.longestStreak.team === 'team1' ? 'text-green-400' : 'text-blue-400'}`}>
+          <div className={`text-xs font-semibold ${data.longestStreak.team === 'team1' ? 'text-green-400' : 'text-blue-400'}`}>
             {data.longestStreak.team === 'team1' ? team1Name : team2Name}
           </div>
         </div>
         <div className="bg-background/50 rounded-lg p-2.5 border border-border/30">
-          <div className="text-muted text-[10px] font-medium">Breaks {team1Name}</div>
+          <div className="text-muted text-xs font-medium">Breaks {team1Name}</div>
           <div className="font-black text-lg mt-0.5 text-green-400">
             {data.breakPointsWon.team1}<span className="text-muted font-normal text-xs">/{data.breakPointsTotal.team1}</span>
           </div>
-          <div className="text-[10px] text-muted">
+          <div className="text-xs text-muted">
             {data.breakPointsTotal.team1 > 0 ? Math.round((data.breakPointsWon.team1 / data.breakPointsTotal.team1) * 100) : 0}% conversion
           </div>
         </div>
         <div className="bg-background/50 rounded-lg p-2.5 border border-border/30">
-          <div className="text-muted text-[10px] font-medium">Breaks {team2Name}</div>
+          <div className="text-muted text-xs font-medium">Breaks {team2Name}</div>
           <div className="font-black text-lg mt-0.5 text-blue-400">
             {data.breakPointsWon.team2}<span className="text-muted font-normal text-xs">/{data.breakPointsTotal.team2}</span>
           </div>
-          <div className="text-[10px] text-muted">
+          <div className="text-xs text-muted">
             {data.breakPointsTotal.team2 > 0 ? Math.round((data.breakPointsWon.team2 / data.breakPointsTotal.team2) * 100) : 0}% conversion
           </div>
         </div>
         <div className="bg-background/50 rounded-lg p-2.5 border border-border/30">
-          <div className="text-muted text-[10px] font-medium">Comebacks</div>
+          <div className="text-muted text-xs font-medium">Comebacks</div>
           <div className="font-black text-lg mt-0.5 text-amber-400">{data.comebacks}</div>
-          <div className="text-[10px] text-muted">remontadas</div>
+          <div className="text-xs text-muted">remontadas</div>
         </div>
       </div>
     </Card>

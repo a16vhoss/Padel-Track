@@ -2,18 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Custom variables (used with var() directly, no hsl wrapper) ===== */
 :root {
-  --background: #0a0f1a;
-  --foreground: #e2e8f0;
-  --card: #111827;
   --card-hover: #1a2332;
-  --border: #1e293b;
-  --primary: #22c55e;
   --primary-hover: #16a34a;
-  --secondary: #3b82f6;
-  --accent: #f59e0b;
   --danger: #ef4444;
-  --muted: #64748b;
   --team1: #22c55e;
   --team2: #3b82f6;
   --court: #1a5c2e;
@@ -23,17 +16,9 @@
 }
 
 .light {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
   --card-hover: #f1f5f9;
-  --border: #e2e8f0;
-  --primary: #16a34a;
   --primary-hover: #15803d;
-  --secondary: #2563eb;
-  --accent: #d97706;
   --danger: #dc2626;
-  --muted: #64748b;
   --team1: #16a34a;
   --team2: #2563eb;
   --court: #2d7a47;
@@ -42,14 +27,70 @@
   --court-zone-selected: rgba(22, 163, 74, 0.3);
 }
 
+/* ===== shadcn CSS variables (HSL values for hsl() wrapper in tailwind) ===== */
+@layer base {
+  :root {
+    --background: 210 40% 96%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 215 16% 47%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 142 71% 45%;
+    --chart-1: 142 71% 45%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 270 60% 55%;
+    --radius: 0.5rem;
+  }
+  .dark,
+  :root:not(.light) {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 19% 27%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 142 71% 45%;
+    --chart-1: 142 71% 45%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 270 60% 55%;
+  }
+}
+
 /* Theme transition */
 html {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
@@ -60,16 +101,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--card);
+  background: hsl(var(--card));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: hsl(var(--border));
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted);
+  background: hsl(var(--muted));
 }
 
 /* Court zone animations */
@@ -176,7 +217,7 @@ body {
   pointer-events: none;
 }
 
-/* Card & list entrance animations */
+/* Card & list entrance animations (legacy, used in non-migrated pages) */
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -274,9 +315,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--card) 25%,
+    hsl(var(--card)) 25%,
     var(--card-hover) 50%,
-    var(--card) 75%
+    hsl(var(--card)) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
@@ -315,7 +356,7 @@ body {
 /* Gradient border card */
 .gradient-border {
   position: relative;
-  background: var(--card);
+  background: hsl(var(--card));
   border-radius: 12px;
   overflow: hidden;
 }

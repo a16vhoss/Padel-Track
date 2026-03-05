@@ -5,6 +5,8 @@ import { MatchStats } from '@/hooks/useStats';
 import { Match } from '@/types/match';
 import { generateInsights } from '@/lib/stats/generateInsights';
 import { ShotEffectivenessEntry } from '@/lib/stats/advancedStats';
+import { AnimatedBar } from '@/components/motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StatsOverviewProps {
   stats: MatchStats;
@@ -40,18 +42,17 @@ function HorizontalBar({
         <span className="font-medium">{label2}: <strong>{value2}</strong></span>
       </div>
       <div className="flex h-4 rounded-full overflow-hidden bg-border/30">
-        <div
-          className={`${color1} flex items-center justify-center text-[10px] font-bold text-black transition-all duration-500`}
-          style={{ width: `${Math.max(pct1, 5)}%` }}
-        >
-          {total > 0 && `${pct1}%`}
-        </div>
-        <div
-          className={`${color2} flex items-center justify-center text-[10px] font-bold text-black transition-all duration-500`}
-          style={{ width: `${Math.max(pct2, 5)}%` }}
-        >
-          {total > 0 && `${pct2}%`}
-        </div>
+        <AnimatedBar
+          percentage={Math.max(pct1, 5)}
+          color={`${color1} flex items-center justify-center text-[11px] font-bold text-black`}
+          height="h-full"
+        />
+        <AnimatedBar
+          percentage={Math.max(pct2, 5)}
+          color={`${color2} flex items-center justify-center text-[11px] font-bold text-black`}
+          height="h-full"
+          delay={0.1}
+        />
       </div>
     </div>
   );
@@ -67,7 +68,7 @@ function PlayerRatingBadge({ rating }: { rating: number }) {
   return (
     <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border ${color}`}>
       <span className="text-lg font-black">{rating}</span>
-      <span className="text-[9px] font-medium uppercase tracking-wide">{label}</span>
+      <span className="text-[11px] font-medium uppercase tracking-wide">{label}</span>
     </div>
   );
 }
@@ -173,27 +174,38 @@ export function StatsOverview({ stats, team1Name, team2Name, match, shotEffectiv
   const clutch = match ? computeClutchStats(match) : null;
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="space-y-4">
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-3">
         <div className="gradient-border">
           <div className="bg-card rounded-xl p-4 text-center">
-            <div className="text-3xl font-black text-primary">{totalPoints}</div>
-            <div className="text-[10px] text-muted mt-1 font-medium">Puntos Jugados</div>
+            <div className="text-2xl font-black text-primary">{totalPoints}</div>
+            <div className="text-xs text-muted-foreground mt-1 font-medium">Puntos Jugados</div>
           </div>
         </div>
-        <div className="gradient-border">
-          <div className="bg-card rounded-xl p-4 text-center">
-            <div className="text-3xl font-black text-green-400">{effectivenessTotal}%</div>
-            <div className="text-[10px] text-muted mt-1 font-medium">Efectividad</div>
-          </div>
-        </div>
-        <div className="gradient-border">
-          <div className="bg-card rounded-xl p-4 text-center">
-            <div className="text-3xl font-black">{stats.avgShotsPerPoint}</div>
-            <div className="text-[10px] text-muted mt-1 font-medium">Golpes/Punto</div>
-          </div>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="gradient-border cursor-help">
+              <div className="bg-card rounded-xl p-4 text-center">
+                <div className="text-2xl font-black text-green-400">{effectivenessTotal}%</div>
+                <div className="text-xs text-muted-foreground mt-1 font-medium">Efectividad</div>
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>Winners / Total golpes ({totalWinners}/{stats.totalShots})</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="gradient-border cursor-help">
+              <div className="bg-card rounded-xl p-4 text-center">
+                <div className="text-2xl font-black">{stats.avgShotsPerPoint}</div>
+                <div className="text-xs text-muted-foreground mt-1 font-medium">Golpes/Punto</div>
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>Promedio de golpes por punto jugado</TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Player Ratings */}
@@ -204,14 +216,14 @@ export function StatsOverview({ stats, team1Name, team2Name, match, shotEffectiv
             {playerRatings.map((p, i) => (
               <div key={p.id} className="flex items-center gap-3 bg-background/50 rounded-lg p-2.5 border border-border/30">
                 {i === 0 && (
-                  <span className="text-[9px] font-black text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">MVP</span>
+                  <span className="text-[11px] font-black text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">MVP</span>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className={`w-2 h-2 rounded-full ${p.teamIdx === 0 ? 'bg-team1' : 'bg-secondary'}`} />
                     <span className="text-xs font-bold truncate">{p.name}</span>
                   </div>
-                  <span className="text-[9px] text-muted">{p.id}</span>
+                  <span className="text-[11px] text-muted-foreground">{p.id}</span>
                 </div>
                 <PlayerRatingBadge rating={p.rating} />
               </div>
@@ -252,15 +264,15 @@ export function StatsOverview({ stats, team1Name, team2Name, match, shotEffectiv
           <div className="grid grid-cols-3 gap-2">
             <div className="text-center bg-background/50 rounded-lg p-2.5 border border-border/30">
               <div className="text-xl font-black text-amber-400">{clutch.breakPointsTotal}</div>
-              <div className="text-[9px] text-muted font-medium">Break Points</div>
+              <div className="text-xs text-muted-foreground font-medium">Break Points</div>
             </div>
             <div className="text-center bg-background/50 rounded-lg p-2.5 border border-green-500/10">
               <div className="text-xl font-black text-green-400">{clutch.breakPointsWon.team1}</div>
-              <div className="text-[9px] text-muted font-medium">Breaks {team1Name}</div>
+              <div className="text-xs text-muted-foreground font-medium">Breaks {team1Name}</div>
             </div>
             <div className="text-center bg-background/50 rounded-lg p-2.5 border border-blue-500/10">
               <div className="text-xl font-black text-blue-400">{clutch.breakPointsWon.team2}</div>
-              <div className="text-[9px] text-muted font-medium">Breaks {team2Name}</div>
+              <div className="text-xs text-muted-foreground font-medium">Breaks {team2Name}</div>
             </div>
           </div>
         </Card>
@@ -270,11 +282,11 @@ export function StatsOverview({ stats, team1Name, team2Name, match, shotEffectiv
       <div className="grid grid-cols-2 gap-3">
         <Card>
           <div className="text-lg font-black">{stats.totalShots}</div>
-          <div className="text-[10px] text-muted font-medium">Golpes Totales</div>
+          <div className="text-xs text-muted-foreground font-medium">Golpes Totales</div>
         </Card>
         <Card>
           <div className="text-lg font-black">{stats.intermediateZoneHits}</div>
-          <div className="text-[10px] text-muted font-medium">Botes en Lineas</div>
+          <div className="text-xs text-muted-foreground font-medium">Botes en Lineas</div>
         </Card>
       </div>
 
@@ -286,12 +298,13 @@ export function StatsOverview({ stats, team1Name, team2Name, match, shotEffectiv
             {insights.map((insight, i) => (
               <div key={i} className="flex gap-2 text-xs">
                 <span className="text-primary flex-shrink-0 font-bold">&#9656;</span>
-                <span className="text-muted">{insight}</span>
+                <span className="text-muted-foreground">{insight}</span>
               </div>
             ))}
           </div>
         </Card>
       )}
     </div>
+    </TooltipProvider>
   );
 }

@@ -2,6 +2,8 @@
 
 import { ReturnStats } from '@/lib/stats/serveStats';
 import { Card } from '@/components/ui/Card';
+import { AnimatedBar } from '@/components/motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ReturnStatsCardProps {
   stats: ReturnStats;
@@ -19,6 +21,7 @@ export function ReturnStatsCard({ stats, teamName }: ReturnStatsCardProps) {
   }
 
   return (
+    <TooltipProvider delayDuration={300}>
     <Card>
       <h3 className="text-sm font-semibold mb-4">
         Resto {teamName && <span className="text-muted font-normal">- {teamName}</span>}
@@ -31,42 +34,45 @@ export function ReturnStatsCard({ stats, teamName }: ReturnStatsCardProps) {
         </div>
         <div>
           <div className="text-xs font-bold">Puntos ganados al resto</div>
-          <div className="text-[10px] text-muted">{stats.pointsWon} de {stats.pointsTotal} puntos</div>
+          <div className="text-xs text-muted-foreground">{stats.pointsWon} de {stats.pointsTotal} puntos</div>
         </div>
       </div>
 
       {/* Break points */}
-      <div className="bg-background/50 rounded-lg p-3 border border-border/30 mb-3">
+      <Tooltip>
+        <TooltipTrigger asChild>
+      <div className="bg-background/50 rounded-lg p-3 border border-border/30 mb-3 cursor-help">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-[10px] text-muted font-medium">Break Points</div>
+          <div className="text-xs text-muted-foreground font-medium">Break Points</div>
           <div className="text-xs font-bold">
             {stats.breakPointsWon}/{stats.breakPointsTotal}
           </div>
         </div>
         <div className="h-2 bg-border/20 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-amber-500 rounded-full transition-all duration-500"
-            style={{ width: `${stats.breakPct}%` }}
-          />
+          <AnimatedBar percentage={stats.breakPct} color="bg-amber-500" height="h-full" />
         </div>
-        <div className="text-right text-[10px] text-amber-400 font-semibold mt-1">{stats.breakPct}%</div>
+        <div className="text-right text-xs text-amber-400 font-semibold mt-1">{stats.breakPct}%</div>
       </div>
+        </TooltipTrigger>
+        <TooltipContent>Puntos de break convertidos al resto</TooltipContent>
+      </Tooltip>
 
       {/* Grid stats */}
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-background/50 rounded-lg p-2 text-center border border-border/30">
           <div className="text-xl font-black text-green-400">{stats.returnWinners}</div>
-          <div className="text-[9px] text-muted font-medium">Winners</div>
+          <div className="text-xs text-muted-foreground font-medium">Winners</div>
         </div>
         <div className="bg-background/50 rounded-lg p-2 text-center border border-border/30">
           <div className="text-xl font-black text-red-400">{stats.returnErrors}</div>
-          <div className="text-[9px] text-muted font-medium">Errores</div>
+          <div className="text-xs text-muted-foreground font-medium">Errores</div>
         </div>
         <div className="bg-background/50 rounded-lg p-2 text-center border border-border/30">
           <div className="text-xl font-black">{stats.gamesWonOnReturn}</div>
-          <div className="text-[9px] text-muted font-medium">Breaks</div>
+          <div className="text-xs text-muted-foreground font-medium">Breaks</div>
         </div>
       </div>
     </Card>
+    </TooltipProvider>
   );
 }
