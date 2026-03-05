@@ -9,6 +9,7 @@ import { Match, Player, Team, MatchConfig } from '@/types/match';
 import { PlayerId } from '@/types/shot';
 import { saveMatch } from '@/lib/persistence/storage';
 import { useLeagueStore } from '@/stores/leagueStore';
+import Link from 'next/link';
 
 export function MatchSetup() {
   const router = useRouter();
@@ -164,29 +165,38 @@ export function MatchSetup() {
           : 'Configura los 2 equipos de 2 jugadores. J1 y J2 forman el Equipo 1, J3 y J4 el Equipo 2.'}
       </p>
 
-      {/* Liga selector - always show if there are active leagues */}
-      {activeLeagues.length > 0 && (
-        <Card>
-          <h2 className="font-semibold mb-3">Liga (opcional)</h2>
-          <select
-            value={selectedLeagueId}
-            onChange={(e) => handleLeagueChange(e.target.value)}
-            className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="">Sin liga - modo manual</option>
-            {activeLeagues.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name} ({l.teams.length} equipos)
-              </option>
-            ))}
-          </select>
-          {selectedLeague && selectedLeague.teams.length < 2 && (
-            <p className="text-xs text-accent mt-2">
-              Esta liga necesita al menos 2 equipos. Agrega equipos desde la pagina de Ligas.
-            </p>
-          )}
-        </Card>
-      )}
+      {/* Liga selector - always visible */}
+      <Card>
+        <h2 className="font-semibold mb-3">Liga (opcional)</h2>
+        {activeLeagues.length > 0 ? (
+          <>
+            <select
+              value={selectedLeagueId}
+              onChange={(e) => handleLeagueChange(e.target.value)}
+              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Sin liga - modo manual</option>
+              {activeLeagues.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name} ({l.teams.length} equipos)
+                </option>
+              ))}
+            </select>
+            {selectedLeague && selectedLeague.teams.length < 2 && (
+              <p className="text-xs text-accent mt-2">
+                Esta liga necesita al menos 2 equipos. Agrega equipos desde la pagina de Ligas.
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="text-sm text-muted">
+            <p>No hay ligas activas.</p>
+            <Link href="/ligas" className="text-primary hover:underline text-xs mt-1 inline-block">
+              Crear una liga
+            </Link>
+          </div>
+        )}
+      </Card>
 
       {/* LEAGUE MODE: Team selectors */}
       {leagueMode && selectedLeague && selectedLeague.teams.length >= 2 && (

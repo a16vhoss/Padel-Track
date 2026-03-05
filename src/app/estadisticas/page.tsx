@@ -72,7 +72,7 @@ export default function EstadisticasPage() {
       </div>
 
       {/* Effectiveness & Averages */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Card className="text-center py-3">
           <div className="text-2xl font-bold text-green-400">{effectiveness}%</div>
           <div className="text-xs text-muted">Efectividad</div>

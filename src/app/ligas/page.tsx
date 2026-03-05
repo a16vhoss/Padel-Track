@@ -124,7 +124,7 @@ export default function LigasPage() {
                     placeholder="Nombre del equipo"
                     className="w-full bg-background border border-border rounded px-3 py-2 text-sm"
                   />
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input
                       type="text"
                       value={player1Name}

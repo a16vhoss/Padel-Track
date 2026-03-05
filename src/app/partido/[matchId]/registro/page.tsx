@@ -81,7 +81,7 @@ export default function RegistroPage() {
     return (
       <div className="space-y-4 animate-fade-in-up">
         <div className="skeleton h-12 rounded-xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="skeleton h-96 rounded-xl" />
           <div className="space-y-4">
             <div className="skeleton h-24 rounded-xl" />
@@ -106,7 +106,7 @@ export default function RegistroPage() {
   return (
     <div className="space-y-4">
       <GuiaRegistro />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Left: Court with integrated walls */}
       <div className={`space-y-4 rounded-xl transition-all duration-300 ${isCourtActive ? 'ring-2 ring-accent/60 ring-offset-2 ring-offset-background' : ''}`}>
         {/* Position tracking toggle */}
