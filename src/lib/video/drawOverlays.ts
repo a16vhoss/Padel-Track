@@ -71,7 +71,7 @@ export function drawSkeleton(
     for (const [a, b] of SKELETON_CONNECTIONS) {
       const la = lm[a];
       const lb = lm[b];
-      if (la.visibility < 0.3 || lb.visibility < 0.3) continue;
+      if (la.visibility < 0.5 || lb.visibility < 0.5) continue;
 
       ctx.beginPath();
       ctx.moveTo(la.x * width, la.y * height);
@@ -81,7 +81,7 @@ export function drawSkeleton(
 
     // Draw joints
     for (let i = 0; i < lm.length; i++) {
-      if (lm[i].visibility < 0.3) continue;
+      if (lm[i].visibility < 0.5) continue;
       const x = lm[i].x * width;
       const y = lm[i].y * height;
 
@@ -96,7 +96,7 @@ export function drawSkeleton(
 
     // Player label
     const nose = lm[POSE.NOSE];
-    if (nose.visibility > 0.3) {
+    if (nose.visibility > 0.5) {
       ctx.font = 'bold 14px system-ui';
       ctx.fillStyle = color;
       ctx.strokeStyle = '#000';
@@ -119,8 +119,8 @@ export function drawBoundingBoxes(
     const lm = pose.landmarks;
     if (!lm || lm.length < 33) return;
 
-    const visible = lm.filter((l) => l.visibility > 0.3);
-    if (visible.length === 0) return;
+    const visible = lm.filter((l) => l.visibility > 0.5);
+    if (visible.length < 6) return;
 
     const xs = visible.map((l) => l.x * width);
     const ys = visible.map((l) => l.y * height);
@@ -157,65 +157,89 @@ export function drawPaddleEstimate(
     const lm = pose.landmarks;
     if (!lm || lm.length < 33) return;
 
-    // Estimate paddle from dominant hand (whichever wrist is higher/more extended)
-    const hands: { wrist: PoseLandmark; index: PoseLandmark; pinky: PoseLandmark }[] = [
-      { wrist: lm[POSE.LEFT_WRIST], index: lm[POSE.LEFT_INDEX], pinky: lm[POSE.LEFT_PINKY] },
-      { wrist: lm[POSE.RIGHT_WRIST], index: lm[POSE.RIGHT_INDEX], pinky: lm[POSE.RIGHT_PINKY] },
+    // Calculate body scale (shoulder to hip distance) for proportional paddle
+    const lShoulder = lm[POSE.LEFT_SHOULDER];
+    const lHip = lm[POSE.LEFT_HIP];
+    const rShoulder = lm[POSE.RIGHT_SHOULDER];
+    const rHip = lm[POSE.RIGHT_HIP];
+
+    let torsoLen = 0;
+    if (lShoulder.visibility > 0.4 && lHip.visibility > 0.4) {
+      const dx = (lShoulder.x - lHip.x) * width;
+      const dy = (lShoulder.y - lHip.y) * height;
+      torsoLen = Math.sqrt(dx * dx + dy * dy);
+    } else if (rShoulder.visibility > 0.4 && rHip.visibility > 0.4) {
+      const dx = (rShoulder.x - rHip.x) * width;
+      const dy = (rShoulder.y - rHip.y) * height;
+      torsoLen = Math.sqrt(dx * dx + dy * dy);
+    }
+    if (torsoLen < 10) return; // Body too small to estimate paddle
+
+    // Paddle length proportional to torso (~60% of torso)
+    const maxPaddleLen = torsoLen * 0.6;
+    const headRadius = Math.max(6, torsoLen * 0.08);
+
+    // Only draw paddle for the dominant hand (the wrist furthest from body center)
+    const hands: { wrist: PoseLandmark; index: PoseLandmark; elbow: PoseLandmark; label: string }[] = [
+      { wrist: lm[POSE.LEFT_WRIST], index: lm[POSE.LEFT_INDEX], elbow: lm[POSE.LEFT_ELBOW], label: 'L' },
+      { wrist: lm[POSE.RIGHT_WRIST], index: lm[POSE.RIGHT_INDEX], elbow: lm[POSE.RIGHT_ELBOW], label: 'R' },
     ];
 
-    for (const hand of hands) {
-      if (hand.wrist.visibility < 0.4) continue;
+    // Pick the hand with higher wrist (more likely holding paddle up)
+    const validHands = hands.filter((h) => h.wrist.visibility > 0.5 && h.elbow.visibility > 0.4);
+    if (validHands.length === 0) return;
 
-      const wx = hand.wrist.x * width;
-      const wy = hand.wrist.y * height;
+    // Choose the hand whose wrist is higher (lower y = higher on screen)
+    const hand = validHands.reduce((a, b) => (a.wrist.y < b.wrist.y ? a : b));
 
-      // Direction from wrist to fingertips (paddle extension)
-      const ix = hand.index.x * width;
-      const iy = hand.index.y * height;
+    const wx = hand.wrist.x * width;
+    const wy = hand.wrist.y * height;
+    const ex = hand.elbow.x * width;
+    const ey = hand.elbow.y * height;
 
-      const dx = ix - wx;
-      const dy = iy - wy;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      if (len < 5) continue;
+    // Direction: elbow -> wrist, extended beyond wrist
+    const dx = wx - ex;
+    const dy = wy - ey;
+    const armLen = Math.sqrt(dx * dx + dy * dy);
+    if (armLen < 3) return;
 
-      // Extend paddle beyond fingers
-      const paddleLen = len * 2.5;
-      const nx = dx / len;
-      const ny = dy / len;
+    const nx = dx / armLen;
+    const ny = dy / armLen;
 
-      const endX = wx + nx * paddleLen;
-      const endY = wy + ny * paddleLen;
+    const endX = wx + nx * maxPaddleLen;
+    const endY = wy + ny * maxPaddleLen;
 
-      // Paddle line
-      ctx.beginPath();
-      ctx.moveTo(wx, wy);
-      ctx.lineTo(endX, endY);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.stroke();
+    // Paddle handle line
+    ctx.beginPath();
+    ctx.moveTo(wx, wy);
+    ctx.lineTo(endX, endY);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(2, torsoLen * 0.02);
+    ctx.lineCap = 'round';
+    ctx.stroke();
 
-      // Paddle head (oval at the end)
-      ctx.beginPath();
-      ctx.save();
-      ctx.translate(endX, endY);
-      ctx.rotate(Math.atan2(ny, nx));
-      ctx.scale(1, 0.6);
-      ctx.arc(0, 0, 18, 0, Math.PI * 2);
-      ctx.restore();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = color + '30';
-      ctx.save();
-      ctx.translate(endX, endY);
-      ctx.rotate(Math.atan2(ny, nx));
-      ctx.scale(1, 0.6);
-      ctx.beginPath();
-      ctx.arc(0, 0, 18, 0, Math.PI * 2);
-      ctx.restore();
-      ctx.fill();
-    }
+    // Paddle head (oval at the end)
+    const angle = Math.atan2(ny, nx);
+    ctx.save();
+    ctx.translate(endX, endY);
+    ctx.rotate(angle);
+    ctx.scale(1, 0.65);
+    ctx.beginPath();
+    ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
+    ctx.restore();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(endX, endY);
+    ctx.rotate(angle);
+    ctx.scale(1, 0.65);
+    ctx.beginPath();
+    ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
+    ctx.restore();
+    ctx.fillStyle = color + '25';
+    ctx.fill();
   });
 }
 

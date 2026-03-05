@@ -72,17 +72,20 @@ export function VideoPlayer() {
     }
   }, [playbackRate]);
 
-  // Render loop
+  // Render loop — always runs to draw overlays even when paused
   const renderFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas || video.paused && !video.seeking) {
+    if (!video || !canvas) {
       rafRef.current = requestAnimationFrame(renderFrame);
       return;
     }
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      rafRef.current = requestAnimationFrame(renderFrame);
+      return;
+    }
 
     // Match canvas to video display size
     const rect = video.getBoundingClientRect();
@@ -96,7 +99,7 @@ export function VideoPlayer() {
 
     ctx.clearRect(0, 0, w, h);
 
-    // Detect poses
+    // Detect poses when playing
     if (isDetecting && !video.paused) {
       const timestampMs = performance.now();
       const poses = detectPoses(video, timestampMs);
