@@ -82,7 +82,7 @@ export default function HomePage() {
         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/8 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-secondary/8 rounded-full blur-3xl" />
         <div className="relative p-6 border border-border/30 rounded-2xl">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-black tracking-tight">
                 <span className="text-primary">Tactical</span>
@@ -148,7 +148,7 @@ export default function HomePage() {
       )}
 
       {/* Quick links */}
-      <StaggerContainer className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+      <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StaggerItem><QuickLinkCard href="/ligas" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg>} title="Ligas" description="Clasificaciones" /></StaggerItem>
         <StaggerItem><QuickLinkCard href="/entrenamiento" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline"><path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" /></svg>} title="Entreno" description="Plan de entreno" /></StaggerItem>
         <StaggerItem><QuickLinkCard href="/scouting" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>} title="Scouting" description="Informes rivales" /></StaggerItem>
