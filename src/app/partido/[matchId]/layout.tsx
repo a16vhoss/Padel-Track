@@ -33,6 +33,7 @@ export default function MatchLayout({
 
   const tabs = [
     { label: 'Registro', href: `/partido/${matchId}/registro` },
+    { label: 'Video', href: `/partido/${matchId}/video` },
     { label: 'Estadisticas', href: `/partido/${matchId}/estadisticas` },
     { label: 'Resumen', href: `/partido/${matchId}/resumen` },
   ];
